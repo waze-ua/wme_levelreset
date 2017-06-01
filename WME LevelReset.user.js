@@ -16,7 +16,7 @@ function LevelReset_bootstrap() {
 }
 
 function LevelReset_init() {
-    // Check initialisation
+    // Check initialization
     if (typeof Waze == 'undefined' || typeof I18n == 'undefined') {
         setTimeout(LevelReset_init, 660);
         console.log('LevelReset: Waze object unavailable, map still loading');
@@ -37,7 +37,7 @@ function LevelReset_init() {
         LU:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4}, //--------------------------------- Luxemburg
         PL:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3},  //--------------------------------- Poland
         TU:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4},  //--------------------------------- Turkey
-        UP:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:2,  rmp_lvl:2, fwy_lvl:2}  //--------------------------------- Ukraine
+        UP:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3}  //--------------------------------- Ukraine
     };
     // Country database --------------------------------------------------------------------------------------------------------------
 
