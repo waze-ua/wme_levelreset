@@ -1,13 +1,13 @@
 // ==UserScript==
-// @name         WME LevelReset
+// @name         WME LevelReset (+POI)
 // @namespace    broosgert@gmail.com
-// @version      0.2.1
-// @description  Script version of the WME LevelReset tool, to make relocking segments to their appropriate lock level easy & quick.
+// @version      0.3.0
+// @description  Script version of the WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick.
 // @author       Broos Gert '2015
 // @match        https://editor-beta.waze.com/*editor/*
 // @match        https://www.waze.com/*editor/*
 // @grant        none
-// @icon		 data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA+VBMVEX///93PgHX19fTgQfFZgLLcwTrxYDDgA3nqBj5+fmwr6+Yl5f8/PzExMTl5eX114vv7+/e3t68vLzOzs6saRKARQSLTgeioqK2tbX72XfU1NT515fxz4b54b3RmySYWAv31aTpwIHgrn9/f3/75qPZsEvuuC/utx3psVP13KizbhXuuVj745bfoEzzwzDxwDXTjknpxqDPfhzWih7PhUaObErowqDJchrmqCfprRjbmUvblCLZjAv71WnhnyTfmA7hrmbjsm7qxpPv06vYljj305776MvLkD3XkjFwcHCMi4v6zk/6z1P2wVDYqzr3y3j2xWnrrl761X3u0VhGAAABv0lEQVQ4jZWTXXuaMBiGY7bZQUhIoBaKsIK0KkVqtd+2tJ2gnVJs9f//mAW78uHYwe6TXE+em/flJAD8D0RVdF3HTKqvGcaMAiAQVYd1vaEASikhhFKA1ZoeA8Iwct2lCAnAxl/zdcAMbeGipbtwMQM62xFEFUJtoWEIsbh0CVTF3QGqqrjax2cq4kkkFQFjTJD2eYeXBoa4uoEoBOU/RhBUWHWHJukUCZ9JQFCnWkVAQJRQniREyvGPANA/YzazRhBKwjSOg+DZmdoRZ+r8XAfxr5eo1AfzuW1HljXfYkX2zJ5b8TQXXtbWzPff38x2hvn27qf+zFrHubC39tppGoabjczZHIZpmra9/jgXTn2vnSTJaxgecsLwNRkmsueflgV5eLZarU4y+Lk6G9YIg8HxB4PBYEfY3woZQ0529rjQ3y+Evid3ez9K9LpmWTjqe2b3Ti5xlwlHhRDYzdvvFW5NOyiEAy48Pu2VeHps2sFBIUwi5/6hWeLh3okmhdCajJyLLxUunNGktS0lgdLW+agz/lZh3Bmdt6ggZS/NUBqX152brxVuOteXDZVRafsUrxq1XGHIBb6CwHoY4Tt+A1eiQ8S/AAv7AAAAAElFTkSuQmCC
+// @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA+VBMVEX///93PgHX19fTgQfFZgLLcwTrxYDDgA3nqBj5+fmwr6+Yl5f8/PzExMTl5eX114vv7+/e3t68vLzOzs6saRKARQSLTgeioqK2tbX72XfU1NT515fxz4b54b3RmySYWAv31aTpwIHgrn9/f3/75qPZsEvuuC/utx3psVP13KizbhXuuVj745bfoEzzwzDxwDXTjknpxqDPfhzWih7PhUaObErowqDJchrmqCfprRjbmUvblCLZjAv71WnhnyTfmA7hrmbjsm7qxpPv06vYljj305776MvLkD3XkjFwcHCMi4v6zk/6z1P2wVDYqzr3y3j2xWnrrl761X3u0VhGAAABv0lEQVQ4jZWTXXuaMBiGY7bZQUhIoBaKsIK0KkVqtd+2tJ2gnVJs9f//mAW78uHYwe6TXE+em/flJAD8D0RVdF3HTKqvGcaMAiAQVYd1vaEASikhhFKA1ZoeA8Iwct2lCAnAxl/zdcAMbeGipbtwMQM62xFEFUJtoWEIsbh0CVTF3QGqqrjax2cq4kkkFQFjTJD2eYeXBoa4uoEoBOU/RhBUWHWHJukUCZ9JQFCnWkVAQJRQniREyvGPANA/YzazRhBKwjSOg+DZmdoRZ+r8XAfxr5eo1AfzuW1HljXfYkX2zJ5b8TQXXtbWzPff38x2hvn27qf+zFrHubC39tppGoabjczZHIZpmra9/jgXTn2vnSTJaxgecsLwNRkmsueflgV5eLZarU4y+Lk6G9YIg8HxB4PBYEfY3woZQ0529rjQ3y+Evid3ez9K9LpmWTjqe2b3Ti5xlwlHhRDYzdvvFW5NOyiEAy48Pu2VeHps2sFBIUwi5/6hWeLh3okmhdCajJyLLxUunNGktS0lgdLW+agz/lZh3Bmdt6ggZS/NUBqX152brxVuOteXDZVRafsUrxq1XGHIBb6CwHoY4Tt+A1eiQ8S/AAv7AAAAAElFTkSuQmCC
 // ==/UserScript==
 
 // initialize LevelReset and do some checks
@@ -29,24 +29,30 @@ function LevelReset_init() {
         }
         return(false);
     }
+    
+    function hasPendingUR(poi) {
+        return (poi.attributes.venueUpdateRequests.length > 0);
+    }
 
     // Country database --------------------------------------------------------------------------------------------------------------
+    // Lock Levels are zero based !!!
     var cntryDB = {
-        BE:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4}, //--------------------------------- Belgium
-        NL:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4}, //--------------------------------- Netherlands
-        LU:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4}, //--------------------------------- Luxemburg
-        PL:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3},  //--------------------------------- Poland
-        TU:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4},  //--------------------------------- Turkey
-        UP:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3}  //--------------------------------- Ukraine
+        BE:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0}, //--------------------------------- Belgium
+        NL:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0}, //--------------------------------- Netherlands
+        LU:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0}, //--------------------------------- Luxemburg
+        PL:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3, poi_lvl:0}, //--------------------------------- Poland
+        TU:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0}, //--------------------------------- Turkey
+        UP:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3, poi_lvl:1}  //--------------------------------- Ukraine
     };
     // Country database --------------------------------------------------------------------------------------------------------------
 
 
     // Setting up all variables
     var UpdateObject = require("Waze/Action/UpdateObject"),
-        VERSION = '0.2.0',
+        VERSION = GM_info.script.version,
         loader = 'data:image/gif;base64,R0lGODlhEAAQAPQAAP///wAAAPj4+Dg4OISEhAYGBiYmJtbW1qioqBYWFnZ2dmZmZuTk5JiYmMbGxkhISFZWVgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH+GkNyZWF0ZWQgd2l0aCBhamF4bG9hZC5pbmZvACH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAEAAQAAAFUCAgjmRpnqUwFGwhKoRgqq2YFMaRGjWA8AbZiIBbjQQ8AmmFUJEQhQGJhaKOrCksgEla+KIkYvC6SJKQOISoNSYdeIk1ayA8ExTyeR3F749CACH5BAAKAAEALAAAAAAQABAAAAVoICCKR9KMaCoaxeCoqEAkRX3AwMHWxQIIjJSAZWgUEgzBwCBAEQpMwIDwY1FHgwJCtOW2UDWYIDyqNVVkUbYr6CK+o2eUMKgWrqKhj0FrEM8jQQALPFA3MAc8CQSAMA5ZBjgqDQmHIyEAIfkEAAoAAgAsAAAAABAAEAAABWAgII4j85Ao2hRIKgrEUBQJLaSHMe8zgQo6Q8sxS7RIhILhBkgumCTZsXkACBC+0cwF2GoLLoFXREDcDlkAojBICRaFLDCOQtQKjmsQSubtDFU/NXcDBHwkaw1cKQ8MiyEAIfkEAAoAAwAsAAAAABAAEAAABVIgII5kaZ6AIJQCMRTFQKiDQx4GrBfGa4uCnAEhQuRgPwCBtwK+kCNFgjh6QlFYgGO7baJ2CxIioSDpwqNggWCGDVVGphly3BkOpXDrKfNm/4AhACH5BAAKAAQALAAAAAAQABAAAAVgICCOZGmeqEAMRTEQwskYbV0Yx7kYSIzQhtgoBxCKBDQCIOcoLBimRiFhSABYU5gIgW01pLUBYkRItAYAqrlhYiwKjiWAcDMWY8QjsCf4DewiBzQ2N1AmKlgvgCiMjSQhACH5BAAKAAUALAAAAAAQABAAAAVfICCOZGmeqEgUxUAIpkA0AMKyxkEiSZEIsJqhYAg+boUFSTAkiBiNHks3sg1ILAfBiS10gyqCg0UaFBCkwy3RYKiIYMAC+RAxiQgYsJdAjw5DN2gILzEEZgVcKYuMJiEAOwAAAAAAAAAAAA==',
         strt = '',
+        poi_lvl = 0,
         fwy_lvl = 4,
         rmp_lvl = 4,
         maj_lvl = 3,
@@ -54,6 +60,7 @@ function LevelReset_init() {
         pri_lvl = 1,
         str_lvl = 0,
         absolute = false,
+        poi_cnt = 0,
         fwy_cnt = 0,
         rmp_cnt = 0,
         maj_cnt = 0,
@@ -77,15 +84,19 @@ function LevelReset_init() {
         alertCntr = document.createElement('div'),
         hidebutton = document.createElement('div'),
         dotscntr = document.createElement('div'),
+        inputDiv1 = document.createElement('div'),
         includeAllSegments = document.createElement('input'),
         includeAllSegmentsLabel = document.createElement('label'),
+        inputDiv2 = document.createElement('div'),
+        skipPOI = document.createElement('input'),
+        skipPOILabel = document.createElement('label'),
         percentageLoader = document.createElement('div'),
-        readable = {'str':'Streets (#)', 'pri':'Primary Streets (#)','min':'Minor Highways (#)', 'maj':'Major Highways (#)',  'rmp':'Ramps (#)', 'fwy':'Freeways (#)'};
+        readable = {'str':'Streets (#)', 'pri':'Primary Streets (#)','min':'Minor Highways (#)', 'maj':'Major Highways (#)',  'rmp':'Ramps (#)', 'fwy':'Freeways (#)', 'poi':'POI (#)'};
 
     // Begin building
     relockContent.id = 'sidepanel-relockTab';
     relockContent.className = 'tab-pane';
-    relockTitle.appendChild(document.createTextNode('Relock segments'));
+    relockTitle.appendChild(document.createTextNode('Relock Segments and POI'));
     relockTitle.style.cssText = 'margin-bottom:0';
     relockTab.innerHTML = '<a href="#sidepanel-relockTab" data-toggle="tab" title="Relock segments">Re - <span class="fa fa-lock" id="lockcolor" style="color:green"></span></a>';
 
@@ -114,15 +125,31 @@ function LevelReset_init() {
     includeAllSegments.type = 'checkbox';
     includeAllSegments.name = "name";
     includeAllSegments.value = "value";
+    includeAllSegments.checked = (localStorage.getItem('Relock_allSegments') == 'true');
     includeAllSegments.id = "_allSegments";
     includeAllSegments.onclick = function() {
+        localStorage.setItem('Relock_allSegments', includeAllSegments.checked.toString());
         scanArea();
         relockShowAlert();
     };
     includeAllSegmentsLabel.htmlFor = "_allSegments";
-    includeAllSegmentsLabel.innerHTML = 'Also reset higher locked segments';
+    includeAllSegmentsLabel.innerHTML = 'Also reset higher locked objects';
     includeAllSegmentsLabel.style.cssText = 'font-size:95%;margin-left:5px;vertical-align:middle';
 
+    // Skip POI checks if not needed
+    skipPOI.type = 'checkbox';
+    skipPOI.name = "name";
+    skipPOI.value = "value";
+    skipPOI.checked = (localStorage.getItem('Relock_skipPOI') == 'true');
+    skipPOI.id = "_skipPOI";
+    skipPOI.onclick = function() {
+        localStorage.setItem('Relock_skipPOI', skipPOI.checked.toString());
+        scanArea();
+    };
+    skipPOILabel.htmlFor = "_skipPOI";
+    skipPOILabel.innerHTML = 'Skip POI checks';
+    skipPOILabel.style.cssText = 'font-size:95%;margin-left:5px;vertical-align:middle';
+    
     // Alert box
     alertCntr.id = "alertCntr";
     alertCntr.style.cssText = 'border:1px solid #EBCCD1;background-color:#F2DEDE;color:#AC4947;font-weight:bold;font-size:90%;border-radius:5px;padding:10px;margin:5px 0;display:none';
@@ -143,8 +170,15 @@ function LevelReset_init() {
         relockSub.appendChild(hidebutton);
         relockContent.appendChild(relockSub);
     }
-    relockContent.appendChild(includeAllSegments);
-    relockContent.appendChild(includeAllSegmentsLabel);
+    
+    inputDiv1.appendChild(includeAllSegments);
+    inputDiv1.appendChild(includeAllSegmentsLabel);
+    relockContent.appendChild(inputDiv1);
+    
+    inputDiv2.appendChild(skipPOI);
+    inputDiv2.appendChild(skipPOILabel);
+    relockContent.appendChild(inputDiv2);
+    
     relockContent.appendChild(alertCntr);
     relockContent.appendChild(relockSubTitle);
     relockContent.appendChild(resultsCntr);
@@ -216,7 +250,7 @@ function LevelReset_init() {
 
     function scanArea() {
         // Object with array of roadtypes, to collect each wrongly locked segment, for later use
-        relockObject = {'str':[], 'pri':[], 'min':[], 'maj':[], 'rmp':[], 'fwy':[]};
+        relockObject = {'str':[], 'pri':[], 'min':[], 'maj':[], 'rmp':[], 'fwy':[], 'poi':[]};
         var foundBadlocks = false;
         var count = 0;
 
@@ -224,6 +258,7 @@ function LevelReset_init() {
         // or country isn't in this list, WME default values are used.
         try {
             var ABBR =  cntryDB[Waze.model.countries.top.abbr];
+            poi_lvl = ABBR.poi_lvl;
             fwy_lvl = ABBR.fwy_lvl;
             rmp_lvl = ABBR.rmp_lvl;
             maj_lvl = ABBR.maj_lvl;
@@ -237,6 +272,27 @@ function LevelReset_init() {
 
         // Do a count on how many segments are in need of a correct lock (limit to 150 to save CPU)
         // Count also depends on the users editor level
+        
+        // ============== POI ===========================
+        if (!skipPOI.checked) {
+            $.each(Waze.model.venues.objects, function( k, v ) {
+                if (count < 150 && v.type == "venue" && onScreen(v) && v.isGeometryEditable() && !hasPendingUR(v)) {
+                    if (userlevel >= (poi_lvl+1)) {
+                        if (v.attributes.lockRank < poi_lvl) {
+                            relockObject.poi.push(new UpdateObject(v, {lockRank: poi_lvl}));
+                            foundBadlocks = true;
+                            count++;
+                        }
+                        if (v.attributes.lockRank > poi_lvl && includeAllSegments.checked) {
+                            relockObject.poi.push(new UpdateObject(v, {lockRank: poi_lvl}));
+                            foundBadlocks = true;
+                            count++;
+                        }
+                    }
+                }
+            });
+        }
+        // ============== Segments ===========================
         $.each(Waze.model.segments.objects, function( k, v ) {
             if (count < 150 && v.type == "segment" && onScreen(v) && v.isGeometryEditable()) {
                 strt = Waze.model.streets.get(v.attributes.primaryStreetID);
@@ -389,6 +445,7 @@ function LevelReset_init() {
     }
 
     // Do a default scan once at startup
+    relockShowAlert();
     scanArea();
 
     // Register some eventlisteners

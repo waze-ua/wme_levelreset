@@ -1,3 +1,7 @@
 # WME_LevelReset
-WME LevelReset script.
-The main difference from the original one the only one for now - Ukraine support.
+Fork of WME LevelReset script.
+
+Differences from the original one:
+- Ukraine locking rules support;
+- Support for POI re-lock;
+- Options are saved between sessions.
