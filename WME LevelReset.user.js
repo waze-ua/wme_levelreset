@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         WME LevelReset (+POI)
 // @namespace    broosgert@gmail.com
-// @version      0.3.0
-// @description  Script version of the WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick.
-// @author       Broos Gert '2015
+// @version      0.3.1
+// @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick.
+// @author       Broos Gert '2015, madnut
 // @match        https://editor-beta.waze.com/*editor/*
 // @match        https://www.waze.com/*editor/*
 // @grant        none
@@ -37,12 +37,12 @@ function LevelReset_init() {
     // Country database --------------------------------------------------------------------------------------------------------------
     // Lock Levels are zero based !!!
     var cntryDB = {
-        BE:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0}, //--------------------------------- Belgium
-        NL:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0}, //--------------------------------- Netherlands
-        LU:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0}, //--------------------------------- Luxemburg
-        PL:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3, poi_lvl:0}, //--------------------------------- Poland
-        TU:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0}, //--------------------------------- Turkey
-        UP:     { str_lvl:0, pri_lvl:1,min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3, poi_lvl:1}  //--------------------------------- Ukraine
+        BE:     { str_lvl:0, pri_lvl:1, min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0, rlr_lvl:0}, //--------------------------------- Belgium
+        NL:     { str_lvl:0, pri_lvl:1, min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0, rlr_lvl:0}, //--------------------------------- Netherlands
+        LU:     { str_lvl:0, pri_lvl:1, min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0, rlr_lvl:0}, //--------------------------------- Luxemburg
+        PL:     { str_lvl:0, pri_lvl:1, min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3, poi_lvl:0, rlr_lvl:0}, //--------------------------------- Poland
+        TU:     { str_lvl:0, pri_lvl:1, min_lvl:2, maj_lvl:3,  rmp_lvl:4, fwy_lvl:4, poi_lvl:0, rlr_lvl:0}, //--------------------------------- Turkey
+        UP:     { str_lvl:0, pri_lvl:1, min_lvl:2, maj_lvl:3,  rmp_lvl:3, fwy_lvl:3, poi_lvl:1, rlr_lvl:1}  //--------------------------------- Ukraine
     };
     // Country database --------------------------------------------------------------------------------------------------------------
 
@@ -52,6 +52,7 @@ function LevelReset_init() {
         VERSION = GM_info.script.version,
         loader = 'data:image/gif;base64,R0lGODlhEAAQAPQAAP///wAAAPj4+Dg4OISEhAYGBiYmJtbW1qioqBYWFnZ2dmZmZuTk5JiYmMbGxkhISFZWVgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH+GkNyZWF0ZWQgd2l0aCBhamF4bG9hZC5pbmZvACH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAEAAQAAAFUCAgjmRpnqUwFGwhKoRgqq2YFMaRGjWA8AbZiIBbjQQ8AmmFUJEQhQGJhaKOrCksgEla+KIkYvC6SJKQOISoNSYdeIk1ayA8ExTyeR3F749CACH5BAAKAAEALAAAAAAQABAAAAVoICCKR9KMaCoaxeCoqEAkRX3AwMHWxQIIjJSAZWgUEgzBwCBAEQpMwIDwY1FHgwJCtOW2UDWYIDyqNVVkUbYr6CK+o2eUMKgWrqKhj0FrEM8jQQALPFA3MAc8CQSAMA5ZBjgqDQmHIyEAIfkEAAoAAgAsAAAAABAAEAAABWAgII4j85Ao2hRIKgrEUBQJLaSHMe8zgQo6Q8sxS7RIhILhBkgumCTZsXkACBC+0cwF2GoLLoFXREDcDlkAojBICRaFLDCOQtQKjmsQSubtDFU/NXcDBHwkaw1cKQ8MiyEAIfkEAAoAAwAsAAAAABAAEAAABVIgII5kaZ6AIJQCMRTFQKiDQx4GrBfGa4uCnAEhQuRgPwCBtwK+kCNFgjh6QlFYgGO7baJ2CxIioSDpwqNggWCGDVVGphly3BkOpXDrKfNm/4AhACH5BAAKAAQALAAAAAAQABAAAAVgICCOZGmeqEAMRTEQwskYbV0Yx7kYSIzQhtgoBxCKBDQCIOcoLBimRiFhSABYU5gIgW01pLUBYkRItAYAqrlhYiwKjiWAcDMWY8QjsCf4DewiBzQ2N1AmKlgvgCiMjSQhACH5BAAKAAUALAAAAAAQABAAAAVfICCOZGmeqEgUxUAIpkA0AMKyxkEiSZEIsJqhYAg+boUFSTAkiBiNHks3sg1ILAfBiS10gyqCg0UaFBCkwy3RYKiIYMAC+RAxiQgYsJdAjw5DN2gILzEEZgVcKYuMJiEAOwAAAAAAAAAAAA==',
         strt = '',
+        rlr_lvl = 0,
         poi_lvl = 0,
         fwy_lvl = 4,
         rmp_lvl = 4,
@@ -60,6 +61,7 @@ function LevelReset_init() {
         pri_lvl = 1,
         str_lvl = 0,
         absolute = false,
+        rlr_cnt = 0,
         poi_cnt = 0,
         fwy_cnt = 0,
         rmp_cnt = 0,
@@ -91,7 +93,7 @@ function LevelReset_init() {
         skipPOI = document.createElement('input'),
         skipPOILabel = document.createElement('label'),
         percentageLoader = document.createElement('div'),
-        readable = {'str':'Streets (#)', 'pri':'Primary Streets (#)','min':'Minor Highways (#)', 'maj':'Major Highways (#)',  'rmp':'Ramps (#)', 'fwy':'Freeways (#)', 'poi':'POI (#)'};
+        readable = {'str':'Streets (#)', 'pri':'Primary Streets (#)','min':'Minor Highways (#)', 'maj':'Major Highways (#)',  'rmp':'Ramps (#)', 'fwy':'Freeways (#)', 'rlr':'Railroads (#)', 'poi':'POI (#)'};
 
     // Begin building
     relockContent.id = 'sidepanel-relockTab';
@@ -250,7 +252,7 @@ function LevelReset_init() {
 
     function scanArea() {
         // Object with array of roadtypes, to collect each wrongly locked segment, for later use
-        relockObject = {'str':[], 'pri':[], 'min':[], 'maj':[], 'rmp':[], 'fwy':[], 'poi':[]};
+        relockObject = {'rlr':[], 'str':[], 'pri':[], 'min':[], 'maj':[], 'rmp':[], 'fwy':[], 'poi':[]};
         var foundBadlocks = false;
         var count = 0;
 
@@ -258,6 +260,7 @@ function LevelReset_init() {
         // or country isn't in this list, WME default values are used.
         try {
             var ABBR =  cntryDB[Waze.model.countries.top.abbr];
+            rlr_lvl = ABBR.rlr_lvl;
             poi_lvl = ABBR.poi_lvl;
             fwy_lvl = ABBR.fwy_lvl;
             rmp_lvl = ABBR.rmp_lvl;
@@ -366,6 +369,19 @@ function LevelReset_init() {
                     }
                     if (v.attributes.lockRank > fwy_lvl && includeAllSegments.checked) {
                         relockObject.fwy.push(new UpdateObject(v, {lockRank: fwy_lvl}));
+                        foundBadlocks = true;
+                        count++;
+                    }
+                }
+                 // Railroads (L2)
+                if (v.attributes.roadType == 18  && (userlevel >= (rlr_lvl+1)) ) {
+                    if (v.attributes.lockRank < rlr_lvl) {
+                        relockObject.rlr.push(new UpdateObject(v, {lockRank: rlr_lvl}));
+                        foundBadlocks = true;
+                        count++;
+                    }
+                    if (v.attributes.lockRank > rlr_lvl && includeAllSegments.checked) {
+                        relockObject.rlr.push(new UpdateObject(v, {lockRank: rlr_lvl}));
                         foundBadlocks = true;
                         count++;
                     }
