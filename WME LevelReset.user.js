@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME LevelReset +
 // @namespace    waze-ua
-// @version      0.4.5
+// @version      0.4.6
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @include      https://*waze.com/*editor*
@@ -336,35 +336,37 @@ function LevelReset_init() {
         colElm.style.cssText = 'width: 20%;';
         rowElm.appendChild(colElm);
         // titles
-        $.each(rulesDB[Waze.model.countries.top.abbr][0].Locks, function (k, v) {
-            colElm = document.createElement('div');
-            colElm.className = 'lrColumn';
-            colElm.innerHTML = k.substring(0, 3);
-            colElm.title = k;
-            rowElm.appendChild(colElm);
-        });
-        // values
-        rulesCntr.appendChild(rowElm);
-        $.each(rulesDB[Waze.model.countries.top.abbr], function (key, value) {
-            if (key != "CountryName") {
-                rowElm = document.createElement('div');
-                rowElm.className = 'lrRow';
+        // check if country supported
+        if (rulesDB[Waze.model.countries.top.abbr]) {
+            $.each(rulesDB[Waze.model.countries.top.abbr][0].Locks, function (k, v) {
                 colElm = document.createElement('div');
                 colElm.className = 'lrColumn';
-                colElm.innerHTML = parseInt(key) === 0 ? rulesDB[Waze.model.countries.top.abbr].CountryName : value.CityName;
-                colElm.title = colElm.innerHTML;
-                colElm.style.cssText = 'width: 20%;';
+                colElm.innerHTML = k.substring(0, 3);
+                colElm.title = k;
                 rowElm.appendChild(colElm);
-                $.each(value.Locks, function (k, v) {
+            });
+            // values
+            rulesCntr.appendChild(rowElm);
+            $.each(rulesDB[Waze.model.countries.top.abbr], function (key, value) {
+                if (key != "CountryName") {
+                    rowElm = document.createElement('div');
+                    rowElm.className = 'lrRow';
                     colElm = document.createElement('div');
                     colElm.className = 'lrColumn';
-                    colElm.innerHTML = v;
+                    colElm.innerHTML = parseInt(key) === 0 ? rulesDB[Waze.model.countries.top.abbr].CountryName : value.CityName;
+                    colElm.title = colElm.innerHTML;
+                    colElm.style.cssText = 'width: 20%;';
                     rowElm.appendChild(colElm);
-                });
-                rulesCntr.appendChild(rowElm);
-            }
-        });
-
+                    $.each(value.Locks, function (k, v) {
+                        colElm = document.createElement('div');
+                        colElm.className = 'lrColumn';
+                        colElm.innerHTML = v;
+                        rowElm.appendChild(colElm);
+                    });
+                    rulesCntr.appendChild(rowElm);
+                }
+            });
+        }
         // add to stage
         navTabs.appendChild(relockTab);
         tabContent.appendChild(relockContent);
@@ -508,7 +510,7 @@ function LevelReset_init() {
                     var strt = v.attributes.streetID ? Waze.model.streets.objects[v.attributes.streetID] : null;
                     var cityID = strt ? strt.cityID : null;
 
-                    var curLockLevel = (cityID && rulesDB[Waze.model.countries.top.abbr][cityID]) ? rulesDB[Waze.model.countries.top.abbr][cityID].Locks.POI : ABBR.POI;
+                    var curLockLevel = (cityID && rulesDB[Waze.model.countries.top.abbr] && rulesDB[Waze.model.countries.top.abbr][cityID]) ? rulesDB[Waze.model.countries.top.abbr][cityID].Locks.POI : ABBR.POI;
                     curLockLevel--;
 
                     if (userlevel > curLockLevel) {
@@ -532,7 +534,7 @@ function LevelReset_init() {
                     var strt = Waze.model.streets.get(v.attributes.primaryStreetID);
                     var cityID = strt ? strt.cityID : null;
 
-                    var stLocks = (cityID && rulesDB[Waze.model.countries.top.abbr][cityID]) ? rulesDB[Waze.model.countries.top.abbr][cityID].Locks : ABBR;
+                    var stLocks = (cityID && rulesDB[Waze.model.countries.top.abbr] && rulesDB[Waze.model.countries.top.abbr][cityID]) ? rulesDB[Waze.model.countries.top.abbr][cityID].Locks : ABBR;
                     var curLockLevel = stLocks[curStreet.typeName] - 1;
 
                     if (userlevel > curLockLevel) {
