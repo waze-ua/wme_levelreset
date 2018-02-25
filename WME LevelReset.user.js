@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME LevelReset +
 // @namespace    waze-ua
-// @version      0.4.6
+// @version      0.4.7
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @include      https://*waze.com/*editor*
@@ -31,9 +31,13 @@ function LevelReset_bootstrap() {
 function LevelReset_init() {
 
     // Check initialization
-    if (typeof Waze == 'undefined' || typeof I18n == 'undefined' || typeof Waze.map == 'undefined' ||
-        typeof Waze.loginManager == 'undefined' || typeof Waze.model == 'undefined' ||
-        typeof Waze.model.countries == 'undefined' || typeof Waze.model.countries.top == 'undefined') {
+    if (typeof W == 'undefined' || 
+        typeof I18n == 'undefined' || 
+        typeof W.map == 'undefined' ||
+        typeof W.loginManager == 'undefined' || 
+        typeof W.model == 'undefined' ||
+        typeof W.model.countries == 'undefined' || 
+        typeof W.model.countries.top == 'undefined') {
         setTimeout(LevelReset_init, 660);
         console.log('LevelReset: Waze object unavailable, map still loading');
         return;
@@ -105,7 +109,7 @@ function LevelReset_init() {
         }
     };
     var relockObject = {};
-    var userlevel = Waze.loginManager.user.normalizedLevel;
+    var userlevel = W.loginManager.user.normalizedLevel;
     //var userlevel = 6; // for testing purposes (NOTE: this does not enable you to lock higher!)
 
     var requestsTimeout = 20000; // in ms
@@ -115,7 +119,7 @@ function LevelReset_init() {
     // Some functions
     function onScreen(obj) {
         if (obj.geometry) {
-            return (Waze.map.getExtent().intersectsBounds(obj.geometry.getBounds()));
+            return (W.map.getExtent().intersectsBounds(obj.geometry.getBounds()));
         }
         return (false);
     }
@@ -337,8 +341,8 @@ function LevelReset_init() {
         rowElm.appendChild(colElm);
         // titles
         // check if country supported
-        if (rulesDB[Waze.model.countries.top.abbr]) {
-            $.each(rulesDB[Waze.model.countries.top.abbr][0].Locks, function (k, v) {
+        if (rulesDB[W.model.countries.top.abbr]) {
+            $.each(rulesDB[W.model.countries.top.abbr][0].Locks, function (k, v) {
                 colElm = document.createElement('div');
                 colElm.className = 'lrColumn';
                 colElm.innerHTML = k.substring(0, 3);
@@ -347,13 +351,13 @@ function LevelReset_init() {
             });
             // values
             rulesCntr.appendChild(rowElm);
-            $.each(rulesDB[Waze.model.countries.top.abbr], function (key, value) {
+            $.each(rulesDB[W.model.countries.top.abbr], function (key, value) {
                 if (key != "CountryName") {
                     rowElm = document.createElement('div');
                     rowElm.className = 'lrRow';
                     colElm = document.createElement('div');
                     colElm.className = 'lrColumn';
-                    colElm.innerHTML = parseInt(key) === 0 ? rulesDB[Waze.model.countries.top.abbr].CountryName : value.CityName;
+                    colElm.innerHTML = parseInt(key) === 0 ? rulesDB[W.model.countries.top.abbr].CountryName : value.CityName;
                     colElm.title = colElm.innerHTML;
                     colElm.style.cssText = 'width: 20%;';
                     rowElm.appendChild(colElm);
@@ -407,7 +411,7 @@ function LevelReset_init() {
 
         // update GUI
         function RunLocal() {
-            Waze.model.actionManager.add(objects[_i]);
+            W.model.actionManager.add(objects[_i]);
             _i++;
 
             if (_i < objects.length) {
@@ -433,7 +437,7 @@ function LevelReset_init() {
                 // loop trough each segmentType
                 var _i = 0;
                 var RunLocal5 = function () {
-                    Waze.model.actionManager.add(value[_i]);
+                    W.model.actionManager.add(value[_i]);
                     _i++;
 
                     // Did not iterate with $.each, so the GUI can update with larger arrays
@@ -484,7 +488,7 @@ function LevelReset_init() {
         // Choose country lock settings. If country selection fails
         // or country isn't in this list, WME default values are used.
         try {
-            ABBR = rulesDB[Waze.model.countries.top.abbr][0].Locks;
+            ABBR = rulesDB[W.model.countries.top.abbr][0].Locks;
             console.log("LevelReset: ", ABBR);
         } catch (err) {
             console.log("LevelReset ERROR: ", err);
@@ -504,13 +508,13 @@ function LevelReset_init() {
 
         // ============== POI ===========================
         if (streets["99999"].scan) {
-            $.each(Waze.model.venues.objects, function (k, v) {
+            $.each(W.model.venues.objects, function (k, v) {
                 if (count < limitCount && v.type == "venue" && onScreen(v) && v.isGeometryEditable() && !hasPendingUR(v) && !v.isResidential()) {
 
-                    var strt = v.attributes.streetID ? Waze.model.streets.objects[v.attributes.streetID] : null;
+                    var strt = v.attributes.streetID ? W.model.streets.objects[v.attributes.streetID] : null;
                     var cityID = strt ? strt.cityID : null;
 
-                    var curLockLevel = (cityID && rulesDB[Waze.model.countries.top.abbr] && rulesDB[Waze.model.countries.top.abbr][cityID]) ? rulesDB[Waze.model.countries.top.abbr][cityID].Locks.POI : ABBR.POI;
+                    var curLockLevel = (cityID && rulesDB[W.model.countries.top.abbr] && rulesDB[W.model.countries.top.abbr][cityID]) ? rulesDB[W.model.countries.top.abbr][cityID].Locks.POI : ABBR.POI;
                     curLockLevel--;
 
                     if (userlevel > curLockLevel) {
@@ -527,14 +531,14 @@ function LevelReset_init() {
             });
         }
         // ============== Segments ===========================
-        $.each(Waze.model.segments.objects, function (k, v) {
+        $.each(W.model.segments.objects, function (k, v) {
             if (count < limitCount && v.type == "segment" && onScreen(v) && v.isGeometryEditable()) {
                 var curStreet = streets[v.attributes.roadType];
                 if (curStreet && curStreet.scan) {
-                    var strt = Waze.model.streets.get(v.attributes.primaryStreetID);
+                    var strt = W.model.streets.get(v.attributes.primaryStreetID);
                     var cityID = strt ? strt.cityID : null;
 
-                    var stLocks = (cityID && rulesDB[Waze.model.countries.top.abbr] && rulesDB[Waze.model.countries.top.abbr][cityID]) ? rulesDB[Waze.model.countries.top.abbr][cityID].Locks : ABBR;
+                    var stLocks = (cityID && rulesDB[W.model.countries.top.abbr] && rulesDB[W.model.countries.top.abbr][cityID]) ? rulesDB[W.model.countries.top.abbr][cityID].Locks : ABBR;
                     var curLockLevel = stLocks[curStreet.typeName] - 1;
 
                     if (userlevel > curLockLevel) {
@@ -592,9 +596,9 @@ function LevelReset_init() {
     getAllLockRules();
 
     // Register some event listeners
-    Waze.map.events.register("moveend", null, scanArea);
-    Waze.model.actionManager.events.register("afteraction", null, scanArea);
-    Waze.model.actionManager.events.register("afterundoaction", null, scanArea);
-    Waze.model.actionManager.events.register("noActions", null, scanArea);
+    W.map.events.register("moveend", null, scanArea);
+    W.model.actionManager.events.register("afteraction", null, scanArea);
+    W.model.actionManager.events.register("afterundoaction", null, scanArea);
+    W.model.actionManager.events.register("noActions", null, scanArea);
 }
 setTimeout(LevelReset_bootstrap, 2000);
