@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME LevelReset +
 // @namespace    waze-ua
-// @version      0.4.8
+// @version      0.4.9
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @include      https://*waze.com/*editor*
@@ -483,16 +483,11 @@ function LevelReset_init() {
         var foundBadlocks = false;
         var allSegmentsInclude = includeAllSegments.checked;
         var count = 0;
-        var ABBR = defaultLocks;
 
         // Choose country lock settings. If country selection fails
         // or country isn't in this list, WME default values are used.
-        try {
-            ABBR = rulesDB[W.model.countries.top.abbr][0].Locks;
-            console.log("LevelReset: ", ABBR);
-        } catch (err) {
-            console.log("LevelReset ERROR: ", err);
-        }
+        var ABBR = rulesDB[W.model.countries.top.abbr] ? rulesDB[W.model.countries.top.abbr][0].Locks : defaultLocks;
+        console.log("LevelReset: ", ABBR);
 
         // Do a count on how many segments are in need of a correct lock (limit to 150 to save CPU)
         // Count also depends on the users editor level
@@ -535,7 +530,7 @@ function LevelReset_init() {
             if (count < limitCount && v.type == "segment" && onScreen(v) && v.isGeometryEditable()) {
                 var curStreet = streets[v.attributes.roadType];
                 if (curStreet && curStreet.scan) {
-                    var strt = W.model.streets.get(v.attributes.primaryStreetID);
+                    var strt = W.model.streets.getObjectById(v.attributes.primaryStreetID);
                     var cityID = strt ? strt.cityID : null;
 
                     var stLocks = (cityID && rulesDB[W.model.countries.top.abbr] && rulesDB[W.model.countries.top.abbr][cityID]) ? rulesDB[W.model.countries.top.abbr][cityID].Locks : ABBR;
