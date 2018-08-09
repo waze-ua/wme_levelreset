@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME LevelReset +
 // @namespace    waze-ua
-// @version      0.4.9
+// @version      2018.08.09.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @include      https://*waze.com/*editor*
@@ -18,7 +18,7 @@
 // initialize LevelReset and do some checks
 function LevelReset_bootstrap() {
     var lrStyle = [
-        'div.lrColumn { float: left; width: 20px; padding: 2px; text-align: center; }',
+        'div.lrColumn { float: left; width: 18px; padding: 2px; text-align: center; }',
         'div.lrRow:after { content: ""; display: table; clear: both; }',
         'div.lrRow div:nth-of-type(odd) { background-color: #ddd; }',
         'div.lrRow div:nth-of-type(even) { background-color: #eee; }',
@@ -59,7 +59,8 @@ function LevelReset_init() {
         Railroad: 0,
         Private: 0,
         Parking: 0,
-        Offroad: 0
+        Offroad: 0,
+        Narrow: 0
     };
     var streets = {
         // fake element to show POI's locks
@@ -105,6 +106,10 @@ function LevelReset_init() {
         },
         18: {
             typeName: "Railroad",
+            scan: true
+        },
+        22: {
+            typeName: "Narrow",
             scan: true
         }
     };
@@ -227,8 +232,11 @@ function LevelReset_init() {
         hidebutton = document.createElement('div'),
         dotscntr = document.createElement('div'),
         inputDiv1 = document.createElement('div'),
+        inputDiv2 = document.createElement('div'),
         includeAllSegments = document.createElement('input'),
         includeAllSegmentsLabel = document.createElement('label'),
+        respectRouting = document.createElement('input'),
+        respectRoutingLabel = document.createElement('label'),
         percentageLoader = document.createElement('div');
 
         rulesDB = rules;
@@ -279,6 +287,20 @@ function LevelReset_init() {
         includeAllSegmentsLabel.innerHTML = 'Also reset higher locked objects';
         includeAllSegmentsLabel.style.cssText = 'font-size:95%;margin-left:5px;vertical-align:middle';
 
+        // Respect routing road type
+        respectRouting.type = 'checkbox';
+        respectRouting.name = "name";
+        respectRouting.value = "value";
+        respectRouting.checked = localStorage.getItem('Relock_respectRouting') == 'false' ? false : true;
+        respectRouting.id = "_respectRouting";
+        respectRouting.onclick = function () {
+            localStorage.setItem('Relock_respectRouting', respectRouting.checked.toString());
+            scanArea();
+        };
+        respectRoutingLabel.htmlFor = "_respectRouting";
+        respectRoutingLabel.innerHTML = 'Respect routing road type';
+        respectRoutingLabel.style.cssText = 'font-size:95%;margin-left:5px;vertical-align:middle';
+        
         // add results empty list
         $.each(streets, function (key, value) {
             var __cntr = document.createElement('div'),
@@ -387,9 +409,12 @@ function LevelReset_init() {
             relockContent.appendChild(relockSub);
         }
 
-        inputDiv1.appendChild(includeAllSegments);
-        inputDiv1.appendChild(includeAllSegmentsLabel);
+        inputDiv1.appendChild(respectRouting);
+        inputDiv1.appendChild(respectRoutingLabel);
+        inputDiv2.appendChild(includeAllSegments);
+        inputDiv2.appendChild(includeAllSegmentsLabel);
         relockContent.appendChild(inputDiv1);
+        relockContent.appendChild(inputDiv2);
 
         relockContent.appendChild(alertCntr);
         relockContent.appendChild(relockSubTitle);
@@ -469,10 +494,11 @@ function LevelReset_init() {
 
     function scanArea() {
         var includeAllSegments = document.getElementById('_allSegments');
+        var respectRouting = document.getElementById('_respectRouting');
         var relockSubTitle = document.getElementById('reshdr');
         var relockAllbutton = document.getElementById('rlkall');
 
-        if (!(includeAllSegments && relockSubTitle && relockAllbutton))
+        if (!(includeAllSegments && relockSubTitle && relockAllbutton && respectRouting))
             return;
 
         // Object with array of road types, to collect each wrongly locked segment, for later use
@@ -482,6 +508,7 @@ function LevelReset_init() {
 
         var foundBadlocks = false;
         var allSegmentsInclude = includeAllSegments.checked;
+        var respectRoutingRoadType = respectRouting.checked;
         var count = 0;
 
         // Choose country lock settings. If country selection fails
@@ -529,6 +556,10 @@ function LevelReset_init() {
         $.each(W.model.segments.objects, function (k, v) {
             if (count < limitCount && v.type == "segment" && onScreen(v) && v.isGeometryEditable()) {
                 var curStreet = streets[v.attributes.roadType];
+                // for changed routing respect the routing type (if enabled)
+                if (v.attributes.routingRoadType && respectRoutingRoadType) {
+                    curStreet = streets[v.attributes.routingRoadType];
+                }
                 if (curStreet && curStreet.scan) {
                     var strt = W.model.streets.getObjectById(v.attributes.primaryStreetID);
                     var cityID = strt ? strt.cityID : null;
