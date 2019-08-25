@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME LevelReset +
 // @namespace    waze-ua
-// @version      2019.05.15.001
+// @version      2019.08.25.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @include      https://*waze.com/*editor*
@@ -15,8 +15,22 @@
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA+VBMVEX///93PgHX19fTgQfFZgLLcwTrxYDDgA3nqBj5+fmwr6+Yl5f8/PzExMTl5eX114vv7+/e3t68vLzOzs6saRKARQSLTgeioqK2tbX72XfU1NT515fxz4b54b3RmySYWAv31aTpwIHgrn9/f3/75qPZsEvuuC/utx3psVP13KizbhXuuVj745bfoEzzwzDxwDXTjknpxqDPfhzWih7PhUaObErowqDJchrmqCfprRjbmUvblCLZjAv71WnhnyTfmA7hrmbjsm7qxpPv06vYljj305776MvLkD3XkjFwcHCMi4v6zk/6z1P2wVDYqzr3y3j2xWnrrl761X3u0VhGAAABv0lEQVQ4jZWTXXuaMBiGY7bZQUhIoBaKsIK0KkVqtd+2tJ2gnVJs9f//mAW78uHYwe6TXE+em/flJAD8D0RVdF3HTKqvGcaMAiAQVYd1vaEASikhhFKA1ZoeA8Iwct2lCAnAxl/zdcAMbeGipbtwMQM62xFEFUJtoWEIsbh0CVTF3QGqqrjax2cq4kkkFQFjTJD2eYeXBoa4uoEoBOU/RhBUWHWHJukUCZ9JQFCnWkVAQJRQniREyvGPANA/YzazRhBKwjSOg+DZmdoRZ+r8XAfxr5eo1AfzuW1HljXfYkX2zJ5b8TQXXtbWzPff38x2hvn27qf+zFrHubC39tppGoabjczZHIZpmra9/jgXTn2vnSTJaxgecsLwNRkmsueflgV5eLZarU4y+Lk6G9YIg8HxB4PBYEfY3woZQ0529rjQ3y+Evid3ez9K9LpmWTjqe2b3Ti5xlwlHhRDYzdvvFW5NOyiEAy48Pu2VeHps2sFBIUwi5/6hWeLh3okmhdCajJyLLxUunNGktS0lgdLW+agz/lZh3Bmdt6ggZS/NUBqX152brxVuOteXDZVRafsUrxq1XGHIBb6CwHoY4Tt+A1eiQ8S/AAv7AAAAAElFTkSuQmCC
 // ==/UserScript==
 
+/* global W */
+/* global $ */
+
 // initialize LevelReset and do some checks
 function LevelReset_bootstrap() {
+    if (W && W.loginManager && W.loginManager.user && W.map && W.model && W.model.countries && W.model.countries.top) {
+        console.log('LevelReset: Initializing...');
+        LevelReset_init();
+    } else {
+        console.log('LevelReset: Bootstrap failed. Trying again...');
+        setTimeout(LevelReset_bootstrap, 660);
+    }
+}
+
+function LevelReset_init() {
+    // Setting up global variables
     var lrStyle = [
         'div.lrColumn { float: left; width: 18px; padding: 2px; text-align: center; }',
         'div.lrRow:after { content: ""; display: table; clear: both; }',
@@ -25,25 +39,6 @@ function LevelReset_bootstrap() {
         ''];
     GM_addStyle(lrStyle.join('\n'));
 
-    LevelReset_init();
-}
-
-function LevelReset_init() {
-
-    // Check initialization
-    if (typeof W == 'undefined' || 
-        typeof I18n == 'undefined' || 
-        typeof W.map == 'undefined' ||
-        typeof W.loginManager == 'undefined' || 
-        typeof W.model == 'undefined' ||
-        typeof W.model.countries == 'undefined' || 
-        typeof W.model.countries.top == 'undefined') {
-        setTimeout(LevelReset_init, 660);
-        console.log('LevelReset: Waze object unavailable, map still loading');
-        return;
-    }
-
-    // Setting up global variables
     var UpdateObject = require("Waze/Action/UpdateObject");
     var VERSION = GM_info.script.version;
     var loader = 'data:image/gif;base64,R0lGODlhEAAQAPQAAP///wAAAPj4+Dg4OISEhAYGBiYmJtbW1qioqBYWFnZ2dmZmZuTk5JiYmMbGxkhISFZWVgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH+GkNyZWF0ZWQgd2l0aCBhamF4bG9hZC5pbmZvACH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAEAAQAAAFUCAgjmRpnqUwFGwhKoRgqq2YFMaRGjWA8AbZiIBbjQQ8AmmFUJEQhQGJhaKOrCksgEla+KIkYvC6SJKQOISoNSYdeIk1ayA8ExTyeR3F749CACH5BAAKAAEALAAAAAAQABAAAAVoICCKR9KMaCoaxeCoqEAkRX3AwMHWxQIIjJSAZWgUEgzBwCBAEQpMwIDwY1FHgwJCtOW2UDWYIDyqNVVkUbYr6CK+o2eUMKgWrqKhj0FrEM8jQQALPFA3MAc8CQSAMA5ZBjgqDQmHIyEAIfkEAAoAAgAsAAAAABAAEAAABWAgII4j85Ao2hRIKgrEUBQJLaSHMe8zgQo6Q8sxS7RIhILhBkgumCTZsXkACBC+0cwF2GoLLoFXREDcDlkAojBICRaFLDCOQtQKjmsQSubtDFU/NXcDBHwkaw1cKQ8MiyEAIfkEAAoAAwAsAAAAABAAEAAABVIgII5kaZ6AIJQCMRTFQKiDQx4GrBfGa4uCnAEhQuRgPwCBtwK+kCNFgjh6QlFYgGO7baJ2CxIioSDpwqNggWCGDVVGphly3BkOpXDrKfNm/4AhACH5BAAKAAQALAAAAAAQABAAAAVgICCOZGmeqEAMRTEQwskYbV0Yx7kYSIzQhtgoBxCKBDQCIOcoLBimRiFhSABYU5gIgW01pLUBYkRItAYAqrlhYiwKjiWAcDMWY8QjsCf4DewiBzQ2N1AmKlgvgCiMjSQhACH5BAAKAAUALAAAAAAQABAAAAVfICCOZGmeqEgUxUAIpkA0AMKyxkEiSZEIsJqhYAg+boUFSTAkiBiNHks3sg1ILAfBiS10gyqCg0UaFBCkwy3RYKiIYMAC+RAxiQgYsJdAjw5DN2gILzEEZgVcKYuMJiEAOwAAAAAAAAAAAA==';
@@ -300,7 +295,7 @@ function LevelReset_init() {
         respectRoutingLabel.htmlFor = "_respectRouting";
         respectRoutingLabel.innerHTML = 'Respect routing road type';
         respectRoutingLabel.style.cssText = 'font-size:95%;margin-left:5px;vertical-align:middle';
-        
+
         // add results empty list
         $.each(streets, function (key, value) {
             var __cntr = document.createElement('div'),
@@ -363,8 +358,9 @@ function LevelReset_init() {
         rowElm.appendChild(colElm);
         // titles
         // check if country supported
-        if (rulesDB[W.model.countries.top.abbr]) {
-            $.each(rulesDB[W.model.countries.top.abbr][0].Locks, function (k, v) {
+        var topCountry = W.model.getTopCountry().abbr;
+        if (rulesDB[topCountry]) {
+            $.each(rulesDB[topCountry][0].Locks, function (k, v) {
                 colElm = document.createElement('div');
                 colElm.className = 'lrColumn';
                 colElm.innerHTML = k.substring(0, 3);
@@ -373,13 +369,13 @@ function LevelReset_init() {
             });
             // values
             rulesCntr.appendChild(rowElm);
-            $.each(rulesDB[W.model.countries.top.abbr], function (key, value) {
+            $.each(rulesDB[topCountry], function (key, value) {
                 if (key != "CountryName") {
                     rowElm = document.createElement('div');
                     rowElm.className = 'lrRow';
                     colElm = document.createElement('div');
                     colElm.className = 'lrColumn';
-                    colElm.innerHTML = parseInt(key) === 0 ? rulesDB[W.model.countries.top.abbr].CountryName : value.CityName;
+                    colElm.innerHTML = parseInt(key) === 0 ? rulesDB[topCountry].CountryName : value.CityName;
                     colElm.title = colElm.innerHTML;
                     colElm.style.cssText = 'width: 20%;';
                     rowElm.appendChild(colElm);
@@ -513,7 +509,8 @@ function LevelReset_init() {
 
         // Choose country lock settings. If country selection fails
         // or country isn't in this list, WME default values are used.
-        var ABBR = rulesDB[W.model.countries.top.abbr] ? rulesDB[W.model.countries.top.abbr][0].Locks : defaultLocks;
+        var topCountry = W.model.getTopCountry().abbr;
+        var ABBR = rulesDB[topCountry] ? rulesDB[topCountry][0].Locks : defaultLocks;
         console.log("LevelReset: ", ABBR);
 
         // Do a count on how many segments are in need of a correct lock (limit to 150 to save CPU)
@@ -536,7 +533,7 @@ function LevelReset_init() {
                     var strt = v.attributes.streetID ? W.model.streets.objects[v.attributes.streetID] : null;
                     var cityID = strt ? strt.cityID : null;
 
-                    var curLockLevel = (cityID && rulesDB[W.model.countries.top.abbr] && rulesDB[W.model.countries.top.abbr][cityID]) ? rulesDB[W.model.countries.top.abbr][cityID].Locks.POI : ABBR.POI;
+                    var curLockLevel = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks.POI : ABBR.POI;
                     curLockLevel--;
 
                     if (userlevel > curLockLevel) {
@@ -564,7 +561,7 @@ function LevelReset_init() {
                     var strt = W.model.streets.getObjectById(v.attributes.primaryStreetID);
                     var cityID = strt ? strt.cityID : null;
 
-                    var stLocks = (cityID && rulesDB[W.model.countries.top.abbr] && rulesDB[W.model.countries.top.abbr][cityID]) ? rulesDB[W.model.countries.top.abbr][cityID].Locks : ABBR;
+                    var stLocks = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks : ABBR;
                     var curLockLevel = stLocks[curStreet.typeName] - 1;
 
                     if (userlevel > curLockLevel) {
