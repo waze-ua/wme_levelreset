@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME LevelReset +
 // @namespace    waze-ua
-// @version      2020.04.24.001
+// @version      2022.01.03.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @include      https://*waze.com/*editor*
@@ -215,9 +215,9 @@ function LevelReset_init() {
         navTabs = userInfo.querySelector('.nav-tabs'),
         tabContent = userInfo.querySelector('.tab-content'),
         relockContent = document.createElement('div'),
-        relockTitle = document.createElement('h3'),
-        relockSubTitle = document.createElement('h4'),
-        rulesSubTitle = document.createElement('h4'),
+        relockTitle = document.createElement('h5'),
+        relockSubTitle = document.createElement('h6'),
+        rulesSubTitle = document.createElement('h6'),
         relockAllbutton = document.createElement('input'),
         relockSub = document.createElement('p'),
         versionTitle = document.createElement('p'),
@@ -239,7 +239,7 @@ function LevelReset_init() {
         // Begin building
         relockContent.id = 'sidepanel-relockTab';
         relockContent.className = 'tab-pane';
-        relockTitle.appendChild(document.createTextNode('Relock Segments and POI'));
+        relockTitle.appendChild(document.createTextNode('Re-lock Segments & POI'));
         relockTitle.style.cssText = 'margin-bottom:0';
         relockTab.innerHTML = '<a href="#sidepanel-relockTab" data-toggle="tab" title="Relock segments">Re - <span class="fa fa-lock" id="lockcolor" style="color:green"></span></a>';
 
@@ -351,6 +351,7 @@ function LevelReset_init() {
         rulesCntr.style.cssText = 'font-size:12px';
         rowElm = document.createElement('div');
         rowElm.className = 'lrRow';
+        rowElm.dataset.name = 'header';
         colElm = document.createElement('div');
         colElm.className = 'lrColumn';
         colElm.innerHTML = '&nbsp;';
@@ -373,6 +374,7 @@ function LevelReset_init() {
                 if (key != "CountryName") {
                     rowElm = document.createElement('div');
                     rowElm.className = 'lrRow';
+                    rowElm.dataset.name = parseInt(key) === 0 ? 'country' : value.CityName; // need to hard code 'country' to identify later
                     colElm = document.createElement('div');
                     colElm.className = 'lrColumn';
                     colElm.innerHTML = parseInt(key) === 0 ? rulesDB[topCountry].CountryName : value.CityName;
@@ -488,6 +490,24 @@ function LevelReset_init() {
             $('#alertCntr').hide("fast");
     }
 
+    function hideInactiveCities() {
+        debugger;
+        $('div.lrRow').each(function (i) {
+            let isActive = false;
+            for (let j in W.model.cities.objects) {
+                if (W.model.cities.objects[j].attributes.name == $(this).data("name")) {
+                    isActive = true;
+                    break;
+                }
+            }
+            if (isActive || $(this).data("name") == 'country' || $(this).data("name") == 'header') {
+                $(this).show("fast");
+            } else {
+                $(this).hide("fast");
+            }
+        });
+    }
+
     function scanArea() {
         var includeAllSegments = document.getElementById('_allSegments');
         var respectRouting = document.getElementById('_respectRouting');
@@ -496,6 +516,8 @@ function LevelReset_init() {
 
         if (!(includeAllSegments && relockSubTitle && relockAllbutton && respectRouting))
             return;
+
+        hideInactiveCities();
 
         // Object with array of road types, to collect each wrongly locked segment, for later use
         $.each(defaultLocks, function (k, v) {
