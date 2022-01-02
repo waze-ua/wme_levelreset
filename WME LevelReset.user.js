@@ -491,7 +491,6 @@ function LevelReset_init() {
     }
 
     function hideInactiveCities() {
-        debugger;
         $('div.lrRow').each(function (i) {
             let isActive = false;
             for (let j in W.model.cities.objects) {
