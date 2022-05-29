@@ -34,10 +34,11 @@ function LevelReset_bootstrap() {
 function LevelReset_init() {
     // Setting up global variables
     const lrStyle = [
-        'div.lrColumn { float: left; width: 18px; padding: 2px; text-align: center; }',
-        'div.lrRow:after { content: ""; display: table; clear: both; }',
-        'div.lrRow div:nth-of-type(odd) { background-color: #ddd; }',
-        'div.lrRow div:nth-of-type(even) { background-color: #eee; }',
+        '.tg { border-collapse: collapse; border-spacing: 0; margin: 0px auto; }',
+        '.tg td { border-color: black; border-style: solid; border-width: 1px; overflow: hidden; padding: 2px 2px; word-break: normal; }',
+        '.tg .tg-value { text-align: center; vertical-align: top }',
+        '.tg .tg-header { background-color: #ecf4ff; border-color: #000000; font-weight: bold; text-align: center; vertical-align: top }',
+        '.tg .tg-type { text-align: left; vertical-align: top }',
         ''];
     GM_addStyle(lrStyle.join('\n'));
 
@@ -269,7 +270,7 @@ function LevelReset_init() {
         dotscntr.id = 'dotscntr';
         relockSubTitle.innerHTML = 'Results';
         relockSubTitle.id = 'reshdr';
-        rulesSubTitle.innerHTML = 'Rules';
+        rulesSubTitle.innerHTML = 'Active rules';
         versionTitle.innerHTML = 'Version ' + VERSION;
         versionTitle.style.cssText = 'margin:2px;font-size:85%;font-weight:bold';
         relockAllbutton.id = 'rlkall';
@@ -361,49 +362,63 @@ function LevelReset_init() {
         // Rules table
         let rowElm;
         let colElm;
-        rulesCntr.style.cssText = 'font-size:12px';
-        rowElm = document.createElement('div');
-        rowElm.className = 'lrRow';
-        rowElm.dataset.name = 'header';
-        colElm = document.createElement('div');
-        colElm.className = 'lrColumn';
-        colElm.innerHTML = '&nbsp;';
-        colElm.style.cssText = 'width: 20%;';
-        rowElm.appendChild(colElm);
-        // titles
-        // check if country supported
-        let topCountry = W.model.getTopCountry().abbr;
-        if (rulesDB[topCountry]) {
-            $.each(rulesDB[topCountry][0].Locks, function (k, v) {
-                colElm = document.createElement('div');
-                colElm.className = 'lrColumn';
-                colElm.innerHTML = k.substring(0, 3);
-                colElm.title = k;
+
+        let tableElm = document.createElement('table');
+        tableElm.className = 'tg';
+
+        let bodyElm = document.createElement('tbody');
+
+        const topCountry = W.model.getTopCountry().abbr;
+        const countryRules = rulesDB[topCountry];
+        if (countryRules) {
+            $.each(countryRules, function (key, value) {
+                if (key == "CountryName") return false;
+
+                rowElm = document.createElement('tr');
+                rowElm.className = "tg-row";
+                rowElm.dataset.name = parseInt(key) === 0 ? 'country' : value.CityName; // need to hard code 'country' to identify later
+
+                colElm = document.createElement('td');
+                colElm.className = "tg-header";
+                colElm.innerHTML = parseInt(key) === 0 ? countryRules.CountryName : value.CityName;
+                colElm.colSpan = 6;
                 rowElm.appendChild(colElm);
-            });
-            // values
-            rulesCntr.appendChild(rowElm);
-            $.each(rulesDB[topCountry], function (key, value) {
-                if (key != "CountryName") {
-                    rowElm = document.createElement('div');
-                    rowElm.className = 'lrRow';
-                    rowElm.dataset.name = parseInt(key) === 0 ? 'country' : value.CityName; // need to hard code 'country' to identify later
-                    colElm = document.createElement('div');
-                    colElm.className = 'lrColumn';
-                    colElm.innerHTML = parseInt(key) === 0 ? rulesDB[topCountry].CountryName : value.CityName;
-                    colElm.title = colElm.innerHTML;
-                    colElm.style.cssText = 'width: 20%;';
-                    rowElm.appendChild(colElm);
-                    $.each(value.Locks, function (k, v) {
-                        colElm = document.createElement('div');
-                        colElm.className = 'lrColumn';
-                        colElm.innerHTML = v;
-                        rowElm.appendChild(colElm);
-                    });
-                    rulesCntr.appendChild(rowElm);
-                }
+                tableElm.appendChild(rowElm);
+
+                const maxCol = 3;
+                let colIndex = 0;
+                rowElm = document.createElement('tr');
+                $.each(value.Locks, function (k, v) {
+                    if (v) {
+                        rowElm.className = "tg-row";
+                        rowElm.dataset.name = parseInt(key) === 0 ? 'country' : value.CityName; // need to hard code 'country' to identify later
+                        if (colIndex < maxCol) {
+                            colElm = document.createElement('td');
+                            colElm.className = "tg-type";
+                            colElm.innerHTML = k;
+                            rowElm.appendChild(colElm);
+
+                            colElm = document.createElement('td');
+                            colElm.className = "tg-value";
+                            colElm.innerHTML = v;
+                            rowElm.appendChild(colElm);
+
+                            colIndex++;
+                        } else {
+                            colIndex = 0;
+                            tableElm.appendChild(rowElm);
+                            rowElm = document.createElement('tr');
+                        }
+                    }
+                });
+                tableElm.appendChild(rowElm);
             });
         }
+
+        tableElm.appendChild(bodyElm);
+        rulesCntr.style.cssText = 'font-size:12px';
+        rulesCntr.appendChild(tableElm);
+
         // add to stage
         navTabs.appendChild(relockTab);
         tabContent.appendChild(relockContent);
@@ -504,7 +519,7 @@ function LevelReset_init() {
     }
 
     function hideInactiveCities() {
-        $('div.lrRow').each(function (i) {
+        $('tr.tg-row').each(function (i) {
             let isActive = false;
             for (let j in W.model.cities.objects) {
                 if (W.model.cities.objects[j].attributes.name == $(this).data("name")) {
@@ -512,7 +527,7 @@ function LevelReset_init() {
                     break;
                 }
             }
-            if (isActive || $(this).data("name") == 'country' || $(this).data("name") == 'header') {
+            if (isActive || $(this).data("name") == 'country') {
                 $(this).show("fast");
             } else {
                 $(this).hide("fast");
