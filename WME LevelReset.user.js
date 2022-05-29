@@ -59,8 +59,8 @@ function LevelReset_init() {
         Parking: 1,
         Offroad: 1,
         Narrow: 1,
-        Camera: 1,
-        RailroadCrossing: 1
+        Camera: 4,
+        RailroadCrossing: 3
     };
     const streets = {
         // fake element to show POI's locks
