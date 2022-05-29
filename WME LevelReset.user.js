@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME LevelReset +
 // @namespace    waze-ua
-// @version      2022.01.03.001
+// @version      2022.05.29.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @include      https://*waze.com/*editor*
@@ -15,8 +15,10 @@
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA+VBMVEX///93PgHX19fTgQfFZgLLcwTrxYDDgA3nqBj5+fmwr6+Yl5f8/PzExMTl5eX114vv7+/e3t68vLzOzs6saRKARQSLTgeioqK2tbX72XfU1NT515fxz4b54b3RmySYWAv31aTpwIHgrn9/f3/75qPZsEvuuC/utx3psVP13KizbhXuuVj745bfoEzzwzDxwDXTjknpxqDPfhzWih7PhUaObErowqDJchrmqCfprRjbmUvblCLZjAv71WnhnyTfmA7hrmbjsm7qxpPv06vYljj305776MvLkD3XkjFwcHCMi4v6zk/6z1P2wVDYqzr3y3j2xWnrrl761X3u0VhGAAABv0lEQVQ4jZWTXXuaMBiGY7bZQUhIoBaKsIK0KkVqtd+2tJ2gnVJs9f//mAW78uHYwe6TXE+em/flJAD8D0RVdF3HTKqvGcaMAiAQVYd1vaEASikhhFKA1ZoeA8Iwct2lCAnAxl/zdcAMbeGipbtwMQM62xFEFUJtoWEIsbh0CVTF3QGqqrjax2cq4kkkFQFjTJD2eYeXBoa4uoEoBOU/RhBUWHWHJukUCZ9JQFCnWkVAQJRQniREyvGPANA/YzazRhBKwjSOg+DZmdoRZ+r8XAfxr5eo1AfzuW1HljXfYkX2zJ5b8TQXXtbWzPff38x2hvn27qf+zFrHubC39tppGoabjczZHIZpmra9/jgXTn2vnSTJaxgecsLwNRkmsueflgV5eLZarU4y+Lk6G9YIg8HxB4PBYEfY3woZQ0529rjQ3y+Evid3ez9K9LpmWTjqe2b3Ti5xlwlHhRDYzdvvFW5NOyiEAy48Pu2VeHps2sFBIUwi5/6hWeLh3okmhdCajJyLLxUunNGktS0lgdLW+agz/lZh3Bmdt6ggZS/NUBqX152brxVuOteXDZVRafsUrxq1XGHIBb6CwHoY4Tt+A1eiQ8S/AAv7AAAAAElFTkSuQmCC
 // ==/UserScript==
 
+/* jshint esversion: 6 */
 /* global W */
 /* global $ */
+/* global require */
 
 // initialize LevelReset and do some checks
 function LevelReset_bootstrap() {
@@ -44,25 +46,36 @@ function LevelReset_init() {
     var loader = 'data:image/gif;base64,R0lGODlhEAAQAPQAAP///wAAAPj4+Dg4OISEhAYGBiYmJtbW1qioqBYWFnZ2dmZmZuTk5JiYmMbGxkhISFZWVgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH+GkNyZWF0ZWQgd2l0aCBhamF4bG9hZC5pbmZvACH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAEAAQAAAFUCAgjmRpnqUwFGwhKoRgqq2YFMaRGjWA8AbZiIBbjQQ8AmmFUJEQhQGJhaKOrCksgEla+KIkYvC6SJKQOISoNSYdeIk1ayA8ExTyeR3F749CACH5BAAKAAEALAAAAAAQABAAAAVoICCKR9KMaCoaxeCoqEAkRX3AwMHWxQIIjJSAZWgUEgzBwCBAEQpMwIDwY1FHgwJCtOW2UDWYIDyqNVVkUbYr6CK+o2eUMKgWrqKhj0FrEM8jQQALPFA3MAc8CQSAMA5ZBjgqDQmHIyEAIfkEAAoAAgAsAAAAABAAEAAABWAgII4j85Ao2hRIKgrEUBQJLaSHMe8zgQo6Q8sxS7RIhILhBkgumCTZsXkACBC+0cwF2GoLLoFXREDcDlkAojBICRaFLDCOQtQKjmsQSubtDFU/NXcDBHwkaw1cKQ8MiyEAIfkEAAoAAwAsAAAAABAAEAAABVIgII5kaZ6AIJQCMRTFQKiDQx4GrBfGa4uCnAEhQuRgPwCBtwK+kCNFgjh6QlFYgGO7baJ2CxIioSDpwqNggWCGDVVGphly3BkOpXDrKfNm/4AhACH5BAAKAAQALAAAAAAQABAAAAVgICCOZGmeqEAMRTEQwskYbV0Yx7kYSIzQhtgoBxCKBDQCIOcoLBimRiFhSABYU5gIgW01pLUBYkRItAYAqrlhYiwKjiWAcDMWY8QjsCf4DewiBzQ2N1AmKlgvgCiMjSQhACH5BAAKAAUALAAAAAAQABAAAAVfICCOZGmeqEgUxUAIpkA0AMKyxkEiSZEIsJqhYAg+boUFSTAkiBiNHks3sg1ILAfBiS10gyqCg0UaFBCkwy3RYKiIYMAC+RAxiQgYsJdAjw5DN2gILzEEZgVcKYuMJiEAOwAAAAAAAAAAAA==';
 
     var defaultLocks = {
-        Street: 0,
+        Street: 1,
         Primary: 1,
         Minor: 2,
         Major: 3,
         Ramp: 4,
         Freeway: 4,
-        POI: 0,
-        Railroad: 0,
-        Private: 0,
-        Parking: 0,
-        Offroad: 0,
-        Narrow: 0
+        POI: 1,
+        Railroad: 1,
+        Private: 1,
+        Parking: 1,
+        Offroad: 1,
+        Narrow: 1,
+        Camera: 1,
+        RailroadCrossing: 1
     };
     var streets = {
         // fake element to show POI's locks
-        99999: {
+        90000: {
             typeName: "POI",
             scan: true
         },
+        90001: {
+            typeName: "Camera",
+            scan: true
+        },
+        90002: {
+            typeName: "RailroadCrossing",
+            scan: true
+        },
+        // normal streets
         17: {
             typeName: "Private",
             scan: true
@@ -113,7 +126,7 @@ function LevelReset_init() {
     //var userlevel = 6; // for testing purposes (NOTE: this does not enable you to lock higher!)
 
     var requestsTimeout = 20000; // in ms
-    var rulesHash = "AKfycbwhJX_xjAvFlB3_Xt-IJDWuxUKQJoWl6Mi1fTAZlfqis81dTPz_";
+    var rulesHash = "AKfycbzKgUQL7cY6XMBlykq0JzJAPc1B26sKEAnG1RJokA9Wpgf_W0oZJwMKcrhA13LrUbvj";
     var rulesDB = {};
 
     // Some functions
@@ -164,23 +177,23 @@ function LevelReset_init() {
 
     function validateHTTPResponse(res) {
         var result = false,
-        displayError = true;
+            displayError = true;
         if (res) {
             switch (res.status) {
-            case 200:
-                displayError = false;
-                if (res.responseHeaders.match(/content-type: application\/json/i)) {
-                    result = true;
-                } else if (res.responseHeaders.match(/content-type: text\/html/i)) {
-                    displayHtmlPage(res);
-                }
-                break;
-            default:
-                displayError = false;
-                alert("LevelReset Error: unsupported status code - " + res.status);
-                console.log("LevelReset: " + res.responseHeaders);
-                console.log("LevelReset: " + res.responseText);
-                break;
+                case 200:
+                    displayError = false;
+                    if (res.responseHeaders.match(/content-type: application\/json/i)) {
+                        result = true;
+                    } else if (res.responseHeaders.match(/content-type: text\/html/i)) {
+                        displayHtmlPage(res);
+                    }
+                    break;
+                default:
+                    displayError = false;
+                    alert("LevelReset Error: unsupported status code - " + res.status);
+                    console.log("LevelReset: " + res.responseHeaders);
+                    console.log("LevelReset: " + res.responseText);
+                    break;
             }
         } else {
             displayError = false;
@@ -211,28 +224,28 @@ function LevelReset_init() {
 
     function initUI(rules) {
         var relockTab = document.createElement('li'),
-        userInfo = document.getElementById('user-info'),
-        navTabs = userInfo.querySelector('.nav-tabs'),
-        tabContent = userInfo.querySelector('.tab-content'),
-        relockContent = document.createElement('div'),
-        relockTitle = document.createElement('h5'),
-        relockSubTitle = document.createElement('h6'),
-        rulesSubTitle = document.createElement('h6'),
-        relockAllbutton = document.createElement('input'),
-        relockSub = document.createElement('p'),
-        versionTitle = document.createElement('p'),
-        resultsCntr = document.createElement('div'),
-        rulesCntr = document.createElement('div'),
-        alertCntr = document.createElement('div'),
-        hidebutton = document.createElement('div'),
-        dotscntr = document.createElement('div'),
-        inputDiv1 = document.createElement('div'),
-        inputDiv2 = document.createElement('div'),
-        includeAllSegments = document.createElement('input'),
-        includeAllSegmentsLabel = document.createElement('label'),
-        respectRouting = document.createElement('input'),
-        respectRoutingLabel = document.createElement('label'),
-        percentageLoader = document.createElement('div');
+            userInfo = document.getElementById('user-info'),
+            navTabs = userInfo.querySelector('.nav-tabs'),
+            tabContent = userInfo.querySelector('.tab-content'),
+            relockContent = document.createElement('div'),
+            relockTitle = document.createElement('h5'),
+            relockSubTitle = document.createElement('h6'),
+            rulesSubTitle = document.createElement('h6'),
+            relockAllbutton = document.createElement('input'),
+            relockSub = document.createElement('p'),
+            versionTitle = document.createElement('p'),
+            resultsCntr = document.createElement('div'),
+            rulesCntr = document.createElement('div'),
+            alertCntr = document.createElement('div'),
+            hidebutton = document.createElement('div'),
+            dotscntr = document.createElement('div'),
+            inputDiv1 = document.createElement('div'),
+            inputDiv2 = document.createElement('div'),
+            includeAllSegments = document.createElement('input'),
+            includeAllSegmentsLabel = document.createElement('label'),
+            respectRouting = document.createElement('input'),
+            respectRoutingLabel = document.createElement('label'),
+            percentageLoader = document.createElement('div');
 
         rulesDB = rules;
 
@@ -299,12 +312,12 @@ function LevelReset_init() {
         // add results empty list
         $.each(streets, function (key, value) {
             var __cntr = document.createElement('div'),
-            __keyLeft = document.createElement('div'),
-            __prntRight = document.createElement('div'),
-            __cntRight = document.createElement('div'),
-            __cleardiv = document.createElement("div"),
-            __chkLeft = document.createElement('input'),
-            __lblLeft = document.createElement('label');
+                __keyLeft = document.createElement('div'),
+                __prntRight = document.createElement('div'),
+                __cntRight = document.createElement('div'),
+                __cleardiv = document.createElement("div"),
+                __chkLeft = document.createElement('input'),
+                __lblLeft = document.createElement('label');
             var idPrefix = 'Relock_' + value.typeName + '_';
 
             // Begin building
@@ -547,7 +560,7 @@ function LevelReset_init() {
         });
 
         // ============== POI ===========================
-        if (streets["99999"].scan) {
+        if (streets["90000"].scan) {
             $.each(W.model.venues.objects, function (k, v) {
                 if (count < limitCount && v.type == "venue" && onScreen(v) && v.isGeometryEditable() && !hasPendingUR(v) /*&& !v.isResidential()*/) {
 
@@ -561,8 +574,52 @@ function LevelReset_init() {
                         if ((v.attributes.lockRank < curLockLevel) ||
                             (v.attributes.lockRank > curLockLevel && allSegmentsInclude)) {
                             relockObject.POI.push(new UpdateObject(v, {
-                                    lockRank: curLockLevel
-                                }));
+                                lockRank: curLockLevel
+                            }));
+                            foundBadlocks = true;
+                            count++;
+                        }
+                    }
+                }
+            });
+        }
+        // ============== Cameras ===========================
+        if (streets["90001"].scan) {
+            let scanObj = "Camera";
+            $.each(W.model.cameras.objects, function (k, v) {
+                if (count < limitCount && v.type == "camera" && onScreen(v) && v.isGeometryEditable()) {
+
+                    var desiredLockLevel = ABBR[scanObj];
+                    desiredLockLevel--;
+
+                    if (userlevel > desiredLockLevel) {
+                        if ((v.attributes.lockRank < desiredLockLevel) ||
+                            (v.attributes.lockRank > desiredLockLevel && allSegmentsInclude)) {
+                            relockObject[scanObj].push(new UpdateObject(v, {
+                                lockRank: desiredLockLevel
+                            }));
+                            foundBadlocks = true;
+                            count++;
+                        }
+                    }
+                }
+            });
+        }
+        // ============== Railroad Crossings ===========================
+        if (streets["90002"].scan) {
+            let scanObj = "RailroadCrossing";
+            $.each(W.model.railroadCrossings.objects, function (k, v) {
+                if (count < limitCount && v.type == "railroadCrossing" && onScreen(v) && v.isGeometryEditable()) {
+
+                    var desiredLockLevel = ABBR[scanObj];
+                    desiredLockLevel--;
+
+                    if (userlevel > desiredLockLevel) {
+                        if ((v.attributes.lockRank < desiredLockLevel) ||
+                            (v.attributes.lockRank > desiredLockLevel && allSegmentsInclude)) {
+                            relockObject[scanObj].push(new UpdateObject(v, {
+                                lockRank: desiredLockLevel
+                            }));
                             foundBadlocks = true;
                             count++;
                         }
@@ -583,14 +640,14 @@ function LevelReset_init() {
                     var cityID = strt ? strt.cityID : null;
 
                     var stLocks = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks : ABBR;
-                    var curLockLevel = stLocks[curStreet.typeName] - 1;
+                    var desiredLockLevel = stLocks[curStreet.typeName] - 1;
 
-                    if (userlevel > curLockLevel) {
-                        if ((v.attributes.lockRank < curLockLevel) ||
-                            (v.attributes.lockRank > curLockLevel && allSegmentsInclude)) {
+                    if (userlevel > desiredLockLevel) {
+                        if ((v.attributes.lockRank < desiredLockLevel) ||
+                            (v.attributes.lockRank > desiredLockLevel && allSegmentsInclude)) {
                             relockObject[curStreet.typeName].push(new UpdateObject(v, {
-                                    lockRank: curLockLevel
-                                }));
+                                lockRank: desiredLockLevel
+                            }));
                             foundBadlocks = true;
                             count++;
                         }
@@ -606,7 +663,7 @@ function LevelReset_init() {
             var idPrefix = 'Relock_' + key + '_value';
 
             // Begin building
-            __prntRight = document.getElementById(idPrefix);
+            var __prntRight = document.getElementById(idPrefix);
             __prntRight.innerHTML = '';
 
             __cntRight.style.cssText = 'float:right';
