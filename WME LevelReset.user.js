@@ -33,7 +33,7 @@ function LevelReset_bootstrap() {
 
 function LevelReset_init() {
     // Setting up global variables
-    var lrStyle = [
+    const lrStyle = [
         'div.lrColumn { float: left; width: 18px; padding: 2px; text-align: center; }',
         'div.lrRow:after { content: ""; display: table; clear: both; }',
         'div.lrRow div:nth-of-type(odd) { background-color: #ddd; }',
@@ -41,11 +41,11 @@ function LevelReset_init() {
         ''];
     GM_addStyle(lrStyle.join('\n'));
 
-    var UpdateObject = require("Waze/Action/UpdateObject");
-    var VERSION = GM_info.script.version;
-    var loader = 'data:image/gif;base64,R0lGODlhEAAQAPQAAP///wAAAPj4+Dg4OISEhAYGBiYmJtbW1qioqBYWFnZ2dmZmZuTk5JiYmMbGxkhISFZWVgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH+GkNyZWF0ZWQgd2l0aCBhamF4bG9hZC5pbmZvACH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAEAAQAAAFUCAgjmRpnqUwFGwhKoRgqq2YFMaRGjWA8AbZiIBbjQQ8AmmFUJEQhQGJhaKOrCksgEla+KIkYvC6SJKQOISoNSYdeIk1ayA8ExTyeR3F749CACH5BAAKAAEALAAAAAAQABAAAAVoICCKR9KMaCoaxeCoqEAkRX3AwMHWxQIIjJSAZWgUEgzBwCBAEQpMwIDwY1FHgwJCtOW2UDWYIDyqNVVkUbYr6CK+o2eUMKgWrqKhj0FrEM8jQQALPFA3MAc8CQSAMA5ZBjgqDQmHIyEAIfkEAAoAAgAsAAAAABAAEAAABWAgII4j85Ao2hRIKgrEUBQJLaSHMe8zgQo6Q8sxS7RIhILhBkgumCTZsXkACBC+0cwF2GoLLoFXREDcDlkAojBICRaFLDCOQtQKjmsQSubtDFU/NXcDBHwkaw1cKQ8MiyEAIfkEAAoAAwAsAAAAABAAEAAABVIgII5kaZ6AIJQCMRTFQKiDQx4GrBfGa4uCnAEhQuRgPwCBtwK+kCNFgjh6QlFYgGO7baJ2CxIioSDpwqNggWCGDVVGphly3BkOpXDrKfNm/4AhACH5BAAKAAQALAAAAAAQABAAAAVgICCOZGmeqEAMRTEQwskYbV0Yx7kYSIzQhtgoBxCKBDQCIOcoLBimRiFhSABYU5gIgW01pLUBYkRItAYAqrlhYiwKjiWAcDMWY8QjsCf4DewiBzQ2N1AmKlgvgCiMjSQhACH5BAAKAAUALAAAAAAQABAAAAVfICCOZGmeqEgUxUAIpkA0AMKyxkEiSZEIsJqhYAg+boUFSTAkiBiNHks3sg1ILAfBiS10gyqCg0UaFBCkwy3RYKiIYMAC+RAxiQgYsJdAjw5DN2gILzEEZgVcKYuMJiEAOwAAAAAAAAAAAA==';
+    const UpdateObject = require("Waze/Action/UpdateObject");
+    const VERSION = GM_info.script.version;
+    const loader = 'data:image/gif;base64,R0lGODlhEAAQAPQAAP///wAAAPj4+Dg4OISEhAYGBiYmJtbW1qioqBYWFnZ2dmZmZuTk5JiYmMbGxkhISFZWVgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH+GkNyZWF0ZWQgd2l0aCBhamF4bG9hZC5pbmZvACH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAEAAQAAAFUCAgjmRpnqUwFGwhKoRgqq2YFMaRGjWA8AbZiIBbjQQ8AmmFUJEQhQGJhaKOrCksgEla+KIkYvC6SJKQOISoNSYdeIk1ayA8ExTyeR3F749CACH5BAAKAAEALAAAAAAQABAAAAVoICCKR9KMaCoaxeCoqEAkRX3AwMHWxQIIjJSAZWgUEgzBwCBAEQpMwIDwY1FHgwJCtOW2UDWYIDyqNVVkUbYr6CK+o2eUMKgWrqKhj0FrEM8jQQALPFA3MAc8CQSAMA5ZBjgqDQmHIyEAIfkEAAoAAgAsAAAAABAAEAAABWAgII4j85Ao2hRIKgrEUBQJLaSHMe8zgQo6Q8sxS7RIhILhBkgumCTZsXkACBC+0cwF2GoLLoFXREDcDlkAojBICRaFLDCOQtQKjmsQSubtDFU/NXcDBHwkaw1cKQ8MiyEAIfkEAAoAAwAsAAAAABAAEAAABVIgII5kaZ6AIJQCMRTFQKiDQx4GrBfGa4uCnAEhQuRgPwCBtwK+kCNFgjh6QlFYgGO7baJ2CxIioSDpwqNggWCGDVVGphly3BkOpXDrKfNm/4AhACH5BAAKAAQALAAAAAAQABAAAAVgICCOZGmeqEAMRTEQwskYbV0Yx7kYSIzQhtgoBxCKBDQCIOcoLBimRiFhSABYU5gIgW01pLUBYkRItAYAqrlhYiwKjiWAcDMWY8QjsCf4DewiBzQ2N1AmKlgvgCiMjSQhACH5BAAKAAUALAAAAAAQABAAAAVfICCOZGmeqEgUxUAIpkA0AMKyxkEiSZEIsJqhYAg+boUFSTAkiBiNHks3sg1ILAfBiS10gyqCg0UaFBCkwy3RYKiIYMAC+RAxiQgYsJdAjw5DN2gILzEEZgVcKYuMJiEAOwAAAAAAAAAAAA==';
 
-    var defaultLocks = {
+    const defaultLocks = {
         Street: 1,
         Primary: 1,
         Minor: 2,
@@ -61,7 +61,7 @@ function LevelReset_init() {
         Camera: 1,
         RailroadCrossing: 1
     };
-    var streets = {
+    const streets = {
         // fake element to show POI's locks
         90000: {
             typeName: "POI",
@@ -121,13 +121,13 @@ function LevelReset_init() {
             scan: true
         }
     };
-    var relockObject = {};
-    var userlevel = W.loginManager.user.rank + 1;
-    //var userlevel = 6; // for testing purposes (NOTE: this does not enable you to lock higher!)
+    let relockObject = {};
+    const userlevel = W.loginManager.user.rank + 1;
+    //const userlevel = 6; // for testing purposes (NOTE: this does not enable you to lock higher!)
 
-    var requestsTimeout = 20000; // in ms
-    var rulesHash = "AKfycbzKgUQL7cY6XMBlykq0JzJAPc1B26sKEAnG1RJokA9Wpgf_W0oZJwMKcrhA13LrUbvj";
-    var rulesDB = {};
+    const requestsTimeout = 20000; // in ms
+    const rulesHash = "AKfycbzKgUQL7cY6XMBlykq0JzJAPc1B26sKEAnG1RJokA9Wpgf_W0oZJwMKcrhA13LrUbvj";
+    let rulesDB = {};
 
     // Some functions
     function onScreen(obj) {
@@ -148,7 +148,7 @@ function LevelReset_init() {
                 "Now you will be redirected to the authorization page, where you'll need to approve request.\n" +
                 "After confirmation, please close the page and reload WME.");
         }
-        var w = window.open();
+        let w = window.open();
         w.document.open();
         w.document.write(res.responseText);
         w.document.close();
@@ -176,7 +176,7 @@ function LevelReset_init() {
     }
 
     function validateHTTPResponse(res) {
-        var result = false,
+        let result = false,
             displayError = true;
         if (res) {
             switch (res.status) {
@@ -209,7 +209,7 @@ function LevelReset_init() {
     function getAllLockRules() {
         function requestCallback(res) {
             if (validateHTTPResponse(res)) {
-                var out = JSON.parse(res.responseText);
+                let out = JSON.parse(res.responseText);
                 if (out.result == "success") {
                     initUI(out.rules);
                 } else {
@@ -218,12 +218,12 @@ function LevelReset_init() {
             }
         }
 
-        var url = 'https://script.google.com/macros/s/' + rulesHash + '/exec?func=getAllLockRules';
+        const url = 'https://script.google.com/macros/s/' + rulesHash + '/exec?func=getAllLockRules';
         sendHTTPRequest(url, requestCallback);
     }
 
     function initUI(rules) {
-        var relockTab = document.createElement('li'),
+        let relockTab = document.createElement('li'),
             userInfo = document.getElementById('user-info'),
             navTabs = userInfo.querySelector('.nav-tabs'),
             tabContent = userInfo.querySelector('.tab-content'),
@@ -311,14 +311,14 @@ function LevelReset_init() {
 
         // add results empty list
         $.each(streets, function (key, value) {
-            var __cntr = document.createElement('div'),
+            let __cntr = document.createElement('div'),
                 __keyLeft = document.createElement('div'),
                 __prntRight = document.createElement('div'),
                 __cntRight = document.createElement('div'),
                 __cleardiv = document.createElement("div"),
                 __chkLeft = document.createElement('input'),
                 __lblLeft = document.createElement('label');
-            var idPrefix = 'Relock_' + value.typeName + '_';
+            let idPrefix = 'Relock_' + value.typeName + '_';
 
             // Begin building
             __keyLeft.style.cssText = 'float:left';
@@ -359,8 +359,8 @@ function LevelReset_init() {
         alertCntr.innerHTML = 'Watch out for map exceptions, some higher locks are there for a reason!';
 
         // Rules table
-        var rowElm;
-        var colElm;
+        let rowElm;
+        let colElm;
         rulesCntr.style.cssText = 'font-size:12px';
         rowElm = document.createElement('div');
         rowElm.className = 'lrRow';
@@ -372,7 +372,7 @@ function LevelReset_init() {
         rowElm.appendChild(colElm);
         // titles
         // check if country supported
-        var topCountry = W.model.getTopCountry().abbr;
+        let topCountry = W.model.getTopCountry().abbr;
         if (rulesDB[topCountry]) {
             $.each(rulesDB[topCountry][0].Locks, function (k, v) {
                 colElm = document.createElement('div');
@@ -442,8 +442,8 @@ function LevelReset_init() {
     }
 
     function relock(obj, key) {
-        var objects = obj[key];
-        var _i = 0;
+        let objects = obj[key];
+        let _i = 0;
 
         // update GUI
         function RunLocal() {
@@ -452,7 +452,7 @@ function LevelReset_init() {
 
             if (_i < objects.length) {
                 setTimeout(RunLocal, 1);
-                var newWidth = (_i / objects.length) * $('#sidepanel-relockTab').css('width').replace('px', '');
+                let newWidth = (_i / objects.length) * $('#sidepanel-relockTab').css('width').replace('px', '');
                 $('#percentageLoader').show();
                 $('#percentageLoader').css('width', newWidth + 'px');
                 $('#dotscntr').css('display', 'inline-block');
@@ -471,15 +471,15 @@ function LevelReset_init() {
         $.each(relockObject, function (key, value) {
             if (value.length !== 0) {
                 // loop trough each segmentType
-                var _i = 0;
-                var RunLocal5 = function () {
+                let _i = 0;
+                let RunLocal5 = function () {
                     W.model.actionManager.add(value[_i]);
                     _i++;
 
                     // Did not iterate with $.each, so the GUI can update with larger arrays
                     if (_i < value.length) {
                         setTimeout(RunLocal5, 1);
-                        var newWidth = (_i / value.length) * $('#sidepanel-relockTab').css('width').replace('px', '');
+                        let newWidth = (_i / value.length) * $('#sidepanel-relockTab').css('width').replace('px', '');
                         $('#percentageLoader').show();
                         $('#percentageLoader').css('width', newWidth + 'px');
                         $('#dotscntr').css('display', 'inline-block');
@@ -496,7 +496,7 @@ function LevelReset_init() {
     }
 
     function relockShowAlert() {
-        var includeAllSegments = document.getElementById('_allSegments');
+        let includeAllSegments = document.getElementById('_allSegments');
         if (includeAllSegments && includeAllSegments.checked)
             $('#alertCntr').show("fast");
         else
@@ -520,13 +520,27 @@ function LevelReset_init() {
         });
     }
 
-    function scanArea() {
-        var includeAllSegments = document.getElementById('_allSegments');
-        var respectRouting = document.getElementById('_respectRouting');
-        var relockSubTitle = document.getElementById('reshdr');
-        var relockAllbutton = document.getElementById('rlkall');
+    function setLockLevel(v, scanObj, desiredLockLevel) {
+        let includeAllSegments = document.getElementById('_allSegments');
+        let allSegmentsInclude = includeAllSegments.checked && userlevel > 4;
+        if (userlevel > desiredLockLevel) {
+            if ((v.attributes.lockRank < desiredLockLevel) ||
+                (v.attributes.lockRank > desiredLockLevel && allSegmentsInclude)) {
+                relockObject[scanObj].push(new UpdateObject(v, {
+                    lockRank: desiredLockLevel
+                }));
+                return true;
+            }
+        }
+        return false;
+    }
 
-        if (!(includeAllSegments && relockSubTitle && relockAllbutton && respectRouting))
+    function scanArea() {
+        let respectRouting = document.getElementById('_respectRouting');
+        let relockSubTitle = document.getElementById('reshdr');
+        let relockAllbutton = document.getElementById('rlkall');
+
+        if (!(relockSubTitle && relockAllbutton && respectRouting))
             return;
 
         hideInactiveCities();
@@ -536,49 +550,43 @@ function LevelReset_init() {
             relockObject[k] = [];
         });
 
-        var foundBadlocks = false;
-        var allSegmentsInclude = includeAllSegments.checked && userlevel > 4;
-        var respectRoutingRoadType = respectRouting.checked;
-        var count = 0;
+        let foundBadlocks = false;
+        let respectRoutingRoadType = respectRouting.checked;
+        let count = 0;
 
         // Choose country lock settings. If country selection fails
         // or country isn't in this list, WME default values are used.
-        var topCountry = W.model.getTopCountry().abbr;
-        var ABBR = rulesDB[topCountry] ? rulesDB[topCountry][0].Locks : defaultLocks;
+        let topCountry = W.model.getTopCountry().abbr;
+        let ABBR = rulesDB[topCountry] ? rulesDB[topCountry][0].Locks : defaultLocks;
         console.log("LevelReset: ", ABBR);
 
         // Do a count on how many segments are in need of a correct lock (limit to 150 to save CPU)
         // Count also depends on the users editor level
-        var limitCount = 150;
+        const limitCount = 150;
         relockSubTitle.innerHTML = 'Results (limit: ' + limitCount + ')';
 
         // disable unchecked road types
         $.each(streets, function (key, value) {
-            var idPrefix = 'Relock_' + value.typeName + '_chk';
-            var chk = document.getElementById(idPrefix);
+            let idPrefix = 'Relock_' + value.typeName + '_chk';
+            let chk = document.getElementById(idPrefix);
             value.scan = (chk && chk.checked);
         });
 
         // ============== POI ===========================
         if (streets["90000"].scan) {
+            let scanObj = "POI";
             $.each(W.model.venues.objects, function (k, v) {
                 if (count < limitCount && v.type == "venue" && onScreen(v) && v.isGeometryEditable() && !hasPendingUR(v) /*&& !v.isResidential()*/) {
 
-                    var strt = v.attributes.streetID ? W.model.streets.objects[v.attributes.streetID] : null;
-                    var cityID = strt ? strt.cityID : null;
+                    let strt = v.attributes.streetID ? W.model.streets.objects[v.attributes.streetID] : null;
+                    let cityID = strt ? strt.cityID : null;
 
-                    var curLockLevel = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks.POI : ABBR.POI;
-                    curLockLevel--;
+                    let desiredLockLevel = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks[scanObj] : ABBR[scanObj];
+                    desiredLockLevel--;
 
-                    if (userlevel > curLockLevel) {
-                        if ((v.attributes.lockRank < curLockLevel) ||
-                            (v.attributes.lockRank > curLockLevel && allSegmentsInclude)) {
-                            relockObject.POI.push(new UpdateObject(v, {
-                                lockRank: curLockLevel
-                            }));
-                            foundBadlocks = true;
-                            count++;
-                        }
+                    if (setLockLevel(v, scanObj, desiredLockLevel)) {
+                        foundBadlocks = true;
+                        count++;
                     }
                 }
             });
@@ -589,18 +597,12 @@ function LevelReset_init() {
             $.each(W.model.cameras.objects, function (k, v) {
                 if (count < limitCount && v.type == "camera" && onScreen(v) && v.isGeometryEditable()) {
 
-                    var desiredLockLevel = ABBR[scanObj];
+                    let desiredLockLevel = ABBR[scanObj];
                     desiredLockLevel--;
 
-                    if (userlevel > desiredLockLevel) {
-                        if ((v.attributes.lockRank < desiredLockLevel) ||
-                            (v.attributes.lockRank > desiredLockLevel && allSegmentsInclude)) {
-                            relockObject[scanObj].push(new UpdateObject(v, {
-                                lockRank: desiredLockLevel
-                            }));
-                            foundBadlocks = true;
-                            count++;
-                        }
+                    if (setLockLevel(v, scanObj, desiredLockLevel)) {
+                        foundBadlocks = true;
+                        count++;
                     }
                 }
             });
@@ -611,18 +613,12 @@ function LevelReset_init() {
             $.each(W.model.railroadCrossings.objects, function (k, v) {
                 if (count < limitCount && v.type == "railroadCrossing" && onScreen(v) && v.isGeometryEditable()) {
 
-                    var desiredLockLevel = ABBR[scanObj];
+                    let desiredLockLevel = ABBR[scanObj];
                     desiredLockLevel--;
 
-                    if (userlevel > desiredLockLevel) {
-                        if ((v.attributes.lockRank < desiredLockLevel) ||
-                            (v.attributes.lockRank > desiredLockLevel && allSegmentsInclude)) {
-                            relockObject[scanObj].push(new UpdateObject(v, {
-                                lockRank: desiredLockLevel
-                            }));
-                            foundBadlocks = true;
-                            count++;
-                        }
+                    if (setLockLevel(v, scanObj, desiredLockLevel)) {
+                        foundBadlocks = true;
+                        count++;
                     }
                 }
             });
@@ -630,27 +626,21 @@ function LevelReset_init() {
         // ============== Segments ===========================
         $.each(W.model.segments.objects, function (k, v) {
             if (count < limitCount && v.type == "segment" && onScreen(v) && v.isGeometryEditable()) {
-                var curStreet = streets[v.attributes.roadType];
+                let curStreet = streets[v.attributes.roadType];
                 // for changed routing respect the routing type (if enabled)
                 if (v.attributes.routingRoadType && respectRoutingRoadType) {
                     curStreet = streets[v.attributes.routingRoadType];
                 }
                 if (curStreet && curStreet.scan) {
-                    var strt = W.model.streets.getObjectById(v.attributes.primaryStreetID);
-                    var cityID = strt ? strt.cityID : null;
+                    let strt = W.model.streets.getObjectById(v.attributes.primaryStreetID);
+                    let cityID = strt ? strt.cityID : null;
 
-                    var stLocks = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks : ABBR;
-                    var desiredLockLevel = stLocks[curStreet.typeName] - 1;
+                    let stLocks = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks : ABBR;
+                    let desiredLockLevel = stLocks[curStreet.typeName] - 1;
 
-                    if (userlevel > desiredLockLevel) {
-                        if ((v.attributes.lockRank < desiredLockLevel) ||
-                            (v.attributes.lockRank > desiredLockLevel && allSegmentsInclude)) {
-                            relockObject[curStreet.typeName].push(new UpdateObject(v, {
-                                lockRank: desiredLockLevel
-                            }));
-                            foundBadlocks = true;
-                            count++;
-                        }
+                    if (setLockLevel(v, curStreet.typeName, desiredLockLevel)) {
+                        foundBadlocks = true;
+                        count++;
                     }
                 }
             }
@@ -658,12 +648,12 @@ function LevelReset_init() {
 
         // Build results to users tab panel
         $.each(relockObject, function (key, value) {
-            var __lckRight = document.createElement('div');
-            var __cntRight = document.createElement('div');
-            var idPrefix = 'Relock_' + key + '_value';
+            let __lckRight = document.createElement('div');
+            let __cntRight = document.createElement('div');
+            let idPrefix = 'Relock_' + key + '_value';
 
             // Begin building
-            var __prntRight = document.getElementById(idPrefix);
+            let __prntRight = document.getElementById(idPrefix);
             __prntRight.innerHTML = '';
 
             __cntRight.style.cssText = 'float:right';
