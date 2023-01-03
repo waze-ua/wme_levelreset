@@ -11,3 +11,5 @@ Differences from the original one:
   - Cameras
   - Railroad Crossings
 - Options are saved between sessions.
+
+Update Rules: If you want add your country, you should PM to @Sapozhnik (Waze, Ukraine Community)
