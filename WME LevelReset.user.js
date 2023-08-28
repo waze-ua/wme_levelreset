@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         WME LevelReset +
-// @namespace    https://greasyfork.org/ru/users/160654-waze-ukraine
-// @version      2023.03.11.001
+// @version      2023.08.28.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
-// @include      https://*waze.com/*editor*
-// @exclude      https://*waze.com/*user/editor*
-// @namespace    https://greasyfork.org/ru/users/160654-waze-ukraine
-// @updateURL    https://greasyfork.org/ru/scripts/457554-wme-levelreset
-// @downloadURL  https://greasyfork.org/ru/scripts/457554-wme-levelreset
+// @match        https://beta.waze.com/*editor*
+// @match        https://www.waze.com/*editor*
+// @exclude      https://www.waze.com/*user/*editor/*
+// @namespace    https://greasyfork.org/uk/users/160654-waze-ukraine
+// @updateURL    https://greasyfork.org/uk/scripts/457554-wme-levelreset
+// @downloadURL  https://greasyfork.org/uk/scripts/457554-wme-levelreset
 // @connect      google.com
 // @connect      script.googleusercontent.com
 // @grant        GM_xmlhttpRequest
@@ -16,19 +16,19 @@
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA+VBMVEX///93PgHX19fTgQfFZgLLcwTrxYDDgA3nqBj5+fmwr6+Yl5f8/PzExMTl5eX114vv7+/e3t68vLzOzs6saRKARQSLTgeioqK2tbX72XfU1NT515fxz4b54b3RmySYWAv31aTpwIHgrn9/f3/75qPZsEvuuC/utx3psVP13KizbhXuuVj745bfoEzzwzDxwDXTjknpxqDPfhzWih7PhUaObErowqDJchrmqCfprRjbmUvblCLZjAv71WnhnyTfmA7hrmbjsm7qxpPv06vYljj305776MvLkD3XkjFwcHCMi4v6zk/6z1P2wVDYqzr3y3j2xWnrrl761X3u0VhGAAABv0lEQVQ4jZWTXXuaMBiGY7bZQUhIoBaKsIK0KkVqtd+2tJ2gnVJs9f//mAW78uHYwe6TXE+em/flJAD8D0RVdF3HTKqvGcaMAiAQVYd1vaEASikhhFKA1ZoeA8Iwct2lCAnAxl/zdcAMbeGipbtwMQM62xFEFUJtoWEIsbh0CVTF3QGqqrjax2cq4kkkFQFjTJD2eYeXBoa4uoEoBOU/RhBUWHWHJukUCZ9JQFCnWkVAQJRQniREyvGPANA/YzazRhBKwjSOg+DZmdoRZ+r8XAfxr5eo1AfzuW1HljXfYkX2zJ5b8TQXXtbWzPff38x2hvn27qf+zFrHubC39tppGoabjczZHIZpmra9/jgXTn2vnSTJaxgecsLwNRkmsueflgV5eLZarU4y+Lk6G9YIg8HxB4PBYEfY3woZQ0529rjQ3y+Evid3ez9K9LpmWTjqe2b3Ti5xlwlHhRDYzdvvFW5NOyiEAy48Pu2VeHps2sFBIUwi5/6hWeLh3okmhdCajJyLLxUunNGktS0lgdLW+agz/lZh3Bmdt6ggZS/NUBqX152brxVuOteXDZVRafsUrxq1XGHIBb6CwHoY4Tt+A1eiQ8S/AAv7AAAAAElFTkSuQmCC
 // ==/UserScript==
 
-/* jshint esversion: 6 */
+/* jshint esversion: 11 */
 /* global W */
 /* global $ */
 /* global require */
 
 // initialize LevelReset and do some checks
 function LevelReset_bootstrap() {
-    if (W && W.loginManager && W.loginManager.user && W.map && W.model && W.model.countries && W.model.countries.top) {
-        console.log('LevelReset: Initializing...');
+    if (W?.userscripts?.state.isReady) {
         LevelReset_init();
     } else {
-        console.log('LevelReset: Bootstrap failed. Trying again...');
-        setTimeout(LevelReset_bootstrap, 660);
+        document.addEventListener("wme-ready", LevelReset_init, {
+            once: true
+        });
     }
 }
 
@@ -124,7 +124,7 @@ function LevelReset_init() {
         }
     };
     let relockObject = {};
-    const userlevel = W.loginManager.user.rank + 1;
+    const userlevel = W.loginManager.getUserRank() + 1;
     //const userlevel = 6; // for testing purposes (NOTE: this does not enable you to lock higher!)
 
     const requestsTimeout = 20000; // in ms
@@ -225,11 +225,7 @@ function LevelReset_init() {
     }
 
     function initUI(rules) {
-        let relockTab = document.createElement('li'),
-            userInfo = document.getElementById('user-info'),
-            navTabs = userInfo.querySelector('.nav-tabs'),
-            tabContent = userInfo.querySelector('.tab-content'),
-            relockContent = document.createElement('div'),
+        let relockContent = document.createElement('div'),
             relockTitle = document.createElement('h5'),
             relockSubTitle = document.createElement('h6'),
             rulesSubTitle = document.createElement('h6'),
@@ -252,11 +248,8 @@ function LevelReset_init() {
         rulesDB = rules;
 
         // Begin building
-        relockContent.id = 'sidepanel-relockTab';
-        relockContent.className = 'tab-pane';
         relockTitle.appendChild(document.createTextNode('Re-lock Segments & POI'));
         relockTitle.style.cssText = 'margin-bottom:0';
-        relockTab.innerHTML = '<a href="#sidepanel-relockTab" data-toggle="tab" title="Relock segments">Re - <span class="fa fa-lock" id="lockcolor" style="color:green"></span></a>';
 
         // fill tab
         relockSub.innerHTML = 'Your on-screen area is automatically scanned when you load or pan around. Pressing the lock behind each type will relock only those results, or you can choose to relock all.<br/><br/>You can only relock segments lower or equal to your current editor level. Segments locked higher than normal are left alone.';
@@ -371,8 +364,8 @@ function LevelReset_init() {
 
         let bodyElm = document.createElement('tbody');
 
-        const topCountry = W.model.getTopCountry().abbr;
-        const countryRules = rulesDB[topCountry];
+        const topCountry = W.model.getTopCountry();
+        const countryRules = rulesDB[topCountry.attributes.abbr];
         if (countryRules) {
             $.each(countryRules, function (key, value) {
                 if (key == "CountryName") return false;
@@ -424,8 +417,6 @@ function LevelReset_init() {
         rulesCntr.appendChild(tableElm);
 
         // add to stage
-        navTabs.appendChild(relockTab);
-        tabContent.appendChild(relockContent);
         relockContent.appendChild(relockTitle);
         relockContent.appendChild(versionTitle);
 
@@ -454,6 +445,13 @@ function LevelReset_init() {
         relockContent.appendChild(percentageLoader);
         relockContent.appendChild(rulesSubTitle);
         relockContent.appendChild(rulesCntr);
+
+        const { tabLabel, tabPane } = W.userscripts.registerSidebarTab("sidepanel-relock");
+
+        tabLabel.innerHTML = 'Re - <span class="fa fa-lock" id="lockcolor" style="color:green"></span>';
+        tabLabel.title = "Relock segments";
+
+        tabPane.innerHTML = relockContent.innerHTML;
 
         // Do a default scan once at startup
         relockShowAlert();
@@ -575,8 +573,8 @@ function LevelReset_init() {
 
         // Choose country lock settings. If country selection fails
         // or country isn't in this list, WME default values are used.
-        let topCountry = W.model.getTopCountry().abbr;
-        let ABBR = rulesDB[topCountry] ? rulesDB[topCountry][0].Locks : defaultLocks;
+        let topCountry = W.model.getTopCountry();
+        let ABBR = rulesDB[topCountry.attributes.abbr] ? rulesDB[topCountry.attributes.abbr][0].Locks : defaultLocks;
         console.log("LevelReset: ", ABBR);
 
         // Do a count on how many segments are in need of a correct lock (limit to 150 to save CPU)
@@ -600,7 +598,7 @@ function LevelReset_init() {
                     let strt = v.attributes.streetID ? W.model.streets.objects[v.attributes.streetID] : null;
                     let cityID = strt ? strt.cityID : null;
 
-                    let desiredLockLevel = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks[scanObj] : ABBR[scanObj];
+                    let desiredLockLevel = (cityID && rulesDB[topCountry.attributes.abbr] && rulesDB[topCountry.attributes.abbr][cityID]) ? rulesDB[topCountry.attributes.abbr][cityID].Locks[scanObj] : ABBR[scanObj];
                     desiredLockLevel--;
 
                     if (setLockLevel(v, scanObj, desiredLockLevel)) {
@@ -654,7 +652,7 @@ function LevelReset_init() {
                     let strt = W.model.streets.getObjectById(v.attributes.primaryStreetID);
                     let cityID = strt ? strt.cityID : null;
 
-                    let stLocks = (cityID && rulesDB[topCountry] && rulesDB[topCountry][cityID]) ? rulesDB[topCountry][cityID].Locks : ABBR;
+                    let stLocks = (cityID && rulesDB[topCountry.attributes.abbr] && rulesDB[topCountry.attributes.abbr][cityID]) ? rulesDB[topCountry.attributes.abbr][cityID].Locks : ABBR;
                     let desiredLockLevel = stLocks[curStreet.typeName] - 1;
 
                     if (setLockLevel(v, curStreet.typeName, desiredLockLevel)) {
@@ -711,4 +709,5 @@ function LevelReset_init() {
     W.model.actionManager.events.register("afterundoaction", null, scanArea);
     W.model.actionManager.events.register("noActions", null, scanArea);
 }
-setTimeout(LevelReset_bootstrap, 2000);
+
+LevelReset_bootstrap();
