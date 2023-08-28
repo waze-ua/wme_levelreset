@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME LevelReset +
-// @version      2023.08.28.001
+// @version      2023.08.29.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @match        https://beta.waze.com/*editor*
@@ -226,12 +226,12 @@ function LevelReset_init() {
 
     function initUI(rules) {
         let relockContent = document.createElement('div'),
-            relockTitle = document.createElement('h5'),
-            relockSubTitle = document.createElement('h6'),
-            rulesSubTitle = document.createElement('h6'),
+            relockTitle = document.createElement('wz-overline'),
+            relockSubTitle = document.createElement('wz-label'),
+            rulesSubTitle = document.createElement('wz-label'),
             relockAllbutton = document.createElement('input'),
             relockSub = document.createElement('p'),
-            versionTitle = document.createElement('p'),
+            versionTitle = document.createElement('wz-label'),
             resultsCntr = document.createElement('div'),
             rulesCntr = document.createElement('div'),
             alertCntr = document.createElement('div'),
@@ -249,7 +249,6 @@ function LevelReset_init() {
 
         // Begin building
         relockTitle.appendChild(document.createTextNode('Re-lock Segments & POI'));
-        relockTitle.style.cssText = 'margin-bottom:0';
 
         // fill tab
         relockSub.innerHTML = 'Your on-screen area is automatically scanned when you load or pan around. Pressing the lock behind each type will relock only those results, or you can choose to relock all.<br/><br/>You can only relock segments lower or equal to your current editor level. Segments locked higher than normal are left alone.';
@@ -266,7 +265,6 @@ function LevelReset_init() {
         relockSubTitle.id = 'reshdr';
         rulesSubTitle.innerHTML = 'Active rules';
         versionTitle.innerHTML = 'Version ' + VERSION;
-        versionTitle.style.cssText = 'margin:2px;font-size:85%;font-weight:bold';
         relockAllbutton.id = 'rlkall';
         relockAllbutton.type = 'button';
         relockAllbutton.value = 'Relock All';
@@ -294,7 +292,7 @@ function LevelReset_init() {
         respectRouting.type = 'checkbox';
         respectRouting.name = "name";
         respectRouting.value = "value";
-        respectRouting.checked = localStorage.getItem('Relock_respectRouting') == 'false' ? false : true;
+        respectRouting.checked = (localStorage.getItem('Relock_respectRouting') == 'true');
         respectRouting.id = "_respectRouting";
         respectRouting.onclick = function () {
             localStorage.setItem('Relock_respectRouting', respectRouting.checked.toString());
@@ -451,7 +449,7 @@ function LevelReset_init() {
         tabLabel.innerHTML = 'Re - <span class="fa fa-lock" id="lockcolor" style="color:green"></span>';
         tabLabel.title = "Relock segments";
 
-        tabPane.innerHTML = relockContent.innerHTML;
+        tabPane.appendChild(relockContent);
 
         // Do a default scan once at startup
         relockShowAlert();
