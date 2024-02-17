@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME LevelReset +
-// @version      2023.08.29.002
+// @version      2024.02.17.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @match        https://beta.waze.com/*editor*
@@ -133,8 +133,8 @@ function LevelReset_init() {
 
     // Some functions
     function onScreen(obj) {
-        if (obj.geometry) {
-            return (W.map.getExtent().intersectsBounds(obj.geometry.getBounds()));
+        if (obj && typeof obj.getOLGeometry === 'function') {
+            return (W.map.getExtent().intersectsBounds(obj.getOLGeometry().getBounds()));
         }
         return (false);
     }
