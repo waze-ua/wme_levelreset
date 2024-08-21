@@ -1,19 +1,19 @@
 // ==UserScript==
 // @name         WME LevelReset +
-// @version      2024.02.17.001
+// @version      2024.08.21.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @match        https://beta.waze.com/*editor*
 // @match        https://www.waze.com/*editor*
 // @exclude      https://www.waze.com/*user/*editor/*
 // @namespace    https://greasyfork.org/uk/users/160654-waze-ukraine
-// @updateURL    https://greasyfork.org/uk/scripts/457554-wme-levelreset
-// @downloadURL  https://greasyfork.org/uk/scripts/457554-wme-levelreset
 // @connect      google.com
 // @connect      script.googleusercontent.com
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA+VBMVEX///93PgHX19fTgQfFZgLLcwTrxYDDgA3nqBj5+fmwr6+Yl5f8/PzExMTl5eX114vv7+/e3t68vLzOzs6saRKARQSLTgeioqK2tbX72XfU1NT515fxz4b54b3RmySYWAv31aTpwIHgrn9/f3/75qPZsEvuuC/utx3psVP13KizbhXuuVj745bfoEzzwzDxwDXTjknpxqDPfhzWih7PhUaObErowqDJchrmqCfprRjbmUvblCLZjAv71WnhnyTfmA7hrmbjsm7qxpPv06vYljj305776MvLkD3XkjFwcHCMi4v6zk/6z1P2wVDYqzr3y3j2xWnrrl761X3u0VhGAAABv0lEQVQ4jZWTXXuaMBiGY7bZQUhIoBaKsIK0KkVqtd+2tJ2gnVJs9f//mAW78uHYwe6TXE+em/flJAD8D0RVdF3HTKqvGcaMAiAQVYd1vaEASikhhFKA1ZoeA8Iwct2lCAnAxl/zdcAMbeGipbtwMQM62xFEFUJtoWEIsbh0CVTF3QGqqrjax2cq4kkkFQFjTJD2eYeXBoa4uoEoBOU/RhBUWHWHJukUCZ9JQFCnWkVAQJRQniREyvGPANA/YzazRhBKwjSOg+DZmdoRZ+r8XAfxr5eo1AfzuW1HljXfYkX2zJ5b8TQXXtbWzPff38x2hvn27qf+zFrHubC39tppGoabjczZHIZpmra9/jgXTn2vnSTJaxgecsLwNRkmsueflgV5eLZarU4y+Lk6G9YIg8HxB4PBYEfY3woZQ0529rjQ3y+Evid3ez9K9LpmWTjqe2b3Ti5xlwlHhRDYzdvvFW5NOyiEAy48Pu2VeHps2sFBIUwi5/6hWeLh3okmhdCajJyLLxUunNGktS0lgdLW+agz/lZh3Bmdt6ggZS/NUBqX152brxVuOteXDZVRafsUrxq1XGHIBb6CwHoY4Tt+A1eiQ8S/AAv7AAAAAElFTkSuQmCC
+// @downloadURL https://update.greasyfork.org/scripts/457554/WME%20LevelReset%20%2B.user.js
+// @updateURL https://update.greasyfork.org/scripts/457554/WME%20LevelReset%20%2B.meta.js
 // ==/UserScript==
 
 /* jshint esversion: 11 */
@@ -134,7 +134,7 @@ function LevelReset_init() {
     // Some functions
     function onScreen(obj) {
         if (obj && typeof obj.getOLGeometry === 'function') {
-            return (W.map.getExtent().intersectsBounds(obj.getOLGeometry().getBounds()));
+            return (W.map.getOLMap().getExtent().intersectsBounds(obj.getOLGeometry().getBounds()));
         }
         return (false);
     }
@@ -184,9 +184,9 @@ function LevelReset_init() {
             switch (res.status) {
                 case 200:
                     displayError = false;
-                    if (res.responseHeaders.match(/content-type: application\/json/i)) {
+                    if (res.responseHeaders.match(/content-type:\s*application\/json/i)) {
                         result = true;
-                    } else if (res.responseHeaders.match(/content-type: text\/html/i)) {
+                    } else if (res.responseHeaders.match(/content-type:\s*text\/html/i)) {
                         displayHtmlPage(res);
                     }
                     break;
@@ -217,6 +217,8 @@ function LevelReset_init() {
                 } else {
                     alert("LevelReset: Error getting locking rules!");
                 }
+            } else {
+                console.warning("LevelReset: can't get locking rules, invalid response!");
             }
         }
 
