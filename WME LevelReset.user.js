@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         WME LevelReset +
-// @version      2024.08.21.001
+// @version      2025.01.24.001
 // @description  Fork of the original script. The WME LevelReset tool, to make re-locking segments and POI to their appropriate lock level easy & quick. Supports major road types and custom locking rules for specific cities.
 // @author       Broos Gert '2015, madnut
 // @match        https://beta.waze.com/*editor*
@@ -60,21 +60,14 @@ function LevelReset_init() {
         Parking: 1,
         Offroad: 1,
         Narrow: 1,
-        Camera: 4,
-        RailroadCrossing: 3
+        Boardwalk: 1,
+        Trail: 1,
+        Stairway: 1
     };
     const streets = {
         // fake element to show POI's locks
         90000: {
             typeName: "POI",
-            scan: true
-        },
-        90001: {
-            typeName: "Camera",
-            scan: true
-        },
-        90002: {
-            typeName: "RailroadCrossing",
             scan: true
         },
         // normal streets
@@ -120,6 +113,18 @@ function LevelReset_init() {
         },
         22: {
             typeName: "Narrow",
+            scan: true
+        },
+        10: {
+            typeName: "Boardwalk",
+            scan: true
+        },
+        5: {
+            typeName: "Trail",
+            scan: true
+        },
+        16: {
+            typeName: "Stairway",
             scan: true
         }
     };
@@ -608,6 +613,7 @@ function LevelReset_init() {
                 }
             });
         }
+        /*
         // ============== Cameras ===========================
         if (streets["90001"].scan) {
             let scanObj = "Camera";
@@ -640,6 +646,7 @@ function LevelReset_init() {
                 }
             });
         }
+        */
         // ============== Segments ===========================
         $.each(W.model.segments.objects, function (k, v) {
             if (count < limitCount && v.type == "segment" && onScreen(v) && v.isGeometryEditable()) {
